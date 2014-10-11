@@ -157,6 +157,23 @@ var Commands = {
 		}
 	},
 
+	PlayerList: function(player, argv, wonderland)
+	{
+		// Lists the array of users it's handed
+		var ListUsers = function(playerArray)
+		{
+
+		}
+
+		// Argv includes the actual command too
+		var argc = argv.length - 1;
+
+		if(argc === 0)
+		{
+			
+		}
+	},
+
 
 /***********************************************\
 |* FUN COMMANDS

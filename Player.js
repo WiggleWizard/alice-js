@@ -25,6 +25,10 @@ function Player(wonderland)
 	this._sigilUsername     = "";
 	this._sigilGroupName    = "";
 	this._sigilGroupRank    = 0;
+
+	// Additional optional data
+	this._muted       = false;
+	this._nameChanged = 0; // Amount of times the player has change his name
 }
 
 Player.prototype = {
@@ -180,6 +184,9 @@ Player.prototype = {
 		var voidFunc = new VoidFunction("SETPLAYERNAME", argv, argt);
 
 		this._wonderland._SendVoidFunction(voidFunc);
+
+		// Increase the number of name changes the player has done
+		this._nameChanged++;
 	},
 
 	HasPerm: function(perm)
@@ -235,6 +242,12 @@ Player.prototype = {
 	{
 		return this._geoData;
 	},
+	GetTimesChangedName: function()
+	{
+		return this._nameChanged;
+	},
+
+
 	GetPerms: function()
 	{
 		return this._perms;

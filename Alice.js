@@ -52,8 +52,10 @@ function OnPlayerChat(player, message)
 
 function OnPlayerChangeName(player, newName)
 {
-	player.SetName(newName);
-	console.log('Player changed his name to: ' + newName);
+	if(player.GetTimesChangedName() >= 3)
+		player.Tell("^1You may only change your name 3 times during your session");
+	else
+		player.SetName(newName);
 }
 
 function OnJoinRequest(ipAddress, geoData)
@@ -113,8 +115,9 @@ function Main()
 	
 	// Admin commands
 	bang.RegisterCommand("perm", null, 1, Commands.Perm);
-	bang.RegisterCommand("kick", "kick", 2, Commands.Kick);
+	bang.RegisterCommand("kick", "kick", 2, Commands.Kick); bang.RegisterCommand("k", "kick", 2, Commands.Kick);
 	bang.RegisterCommand("geo", "geo", 1, Commands.Geo);
+	bang.RegisterCommand("plist", "plist", 1, Commands.ListPlayers);
 
 	// Fun commands
 	bang.RegisterCommand("ping", null, 0, Commands.Ping);
