@@ -1,0 +1,6 @@
+{
+	"host": "localhost",
+	"username": "user",
+	"password": "pass",
+	"dbname": "sigil"
+}
