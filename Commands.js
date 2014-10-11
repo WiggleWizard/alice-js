@@ -99,12 +99,45 @@ var Commands = {
 					player.Tell("^1Multiple players found with that name, try refine your search");
 				else
 				{
-					wonderland.BroadcastChat("^5" + search[0].GetName() + " ^1was kicked, reason: " + arg2);
+					wonderland.BroadcastChat("^5" + search[0].GetName() + " ^5was kicked, reason: " + arg2);
 					var kickMsg = 	"^5= You have been kicked =\n" +
 									"^5/----------------------------------------------------------------\\\n" +
 									"^7Reason for kick: \n^5" + argv[2] + "\n"+
 									"^5\\----------------------------------------------------------------/";
 					search[0].Kick(kickMsg);
+				}
+			}
+			else
+			{
+				player.Tell("^1No players found in the search, try using an ID or different your search terms");
+			}
+		}
+	},
+
+	Ban: function(player, argv, wonderland)
+	{
+		// Argv includes the actual command too
+		var argc = argv.length - 1;
+
+		if(argc < 2)
+		{
+			player.Tell("^1Usage: !ban [id / partial name] [reason]");
+			player.Tell("^1-> Bans the player and shows the reason to him when removed from the server.");
+		}
+		else
+		{
+			arg1 = argv[1].trim();
+			arg2 = argv[2].trim();
+			search = wonderland.FindPlayers(arg1);
+
+			if(search != null)
+			{
+				if(search.length > 1)
+					player.Tell("^1Multiple players found with that name, try refine your search");
+				else
+				{
+					wonderland.BroadcastChat("^5" + search[0].GetName() + " ^1was banned, reason: " + arg2);
+					search[0].Ban(player, arg2);
 				}
 			}
 			else
@@ -170,7 +203,7 @@ var Commands = {
 
 		if(argc === 0)
 		{
-			
+
 		}
 	},
 

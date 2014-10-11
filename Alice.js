@@ -129,6 +129,7 @@ function Main()
 	// Admin commands
 	bang.RegisterCommand("perm", null, 1, Commands.Perm);
 	bang.RegisterCommand("kick", "kick", 2, Commands.Kick); bang.RegisterCommand("k", "kick", 2, Commands.Kick);
+	bang.RegisterCommand("ban", "ban", 2, Commands.Ban); bang.RegisterCommand("b", "ban", 2, Commands.Ban);
 	bang.RegisterCommand("geo", "geo", 1, Commands.Geo);
 	bang.RegisterCommand("plist", "plist", 1, Commands.ListPlayers);
 

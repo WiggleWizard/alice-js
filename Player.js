@@ -1,4 +1,5 @@
 var PHPUnserialize = require('php-unserialize');
+var Moment         = require('moment');
 
 /* User Objects */
 var VoidFunction   = require('./VoidFunction.js');
@@ -58,6 +59,7 @@ Player.prototype = {
 		// Sigil related stuff
 		this._isSignedIntoSigil = false;
 		this._perms             = new Array();
+		this._sigilUserID       = null;
 		this._sigilUsername     = "";
 		this._sigilGroupName    = "";
 		this._sigilGroupRank    = 0;
@@ -139,24 +141,24 @@ Player.prototype = {
 	{
 		var self = this;
 
-		sql  = 'SELECT \
-					accounts.id AS user_id, \
-					accounts.username AS username, \
-					accounts.ingame_name AS ingame_name, \
-					\
-					`groups`.name AS group_name, \
-					`groups`.rank AS group_rank, \
-					\
-					perm_keys.key AS perm_key\
-				FROM \
-					accounts \
-				LEFT JOIN \
-					account_groups ON (account_id=accounts.id) \
-				LEFT JOIN \
-					`groups` ON (account_groups.group_id=`groups`.id) \
-				LEFT JOIN \
-					alice_perms ON (`group`=account_groups.group_id) \
-				LEFT JOIN \
+		sql  = 'SELECT                                                  \
+					accounts.id AS user_id,                             \
+					accounts.username AS username,                      \
+					accounts.ingame_name AS ingame_name,                \
+					                                                    \
+					`groups`.name AS group_name,                        \
+					`groups`.rank AS group_rank,                        \
+					                                                    \
+					perm_keys.key AS perm_key                           \
+				FROM                                                    \
+					accounts                                            \
+				LEFT JOIN                                               \
+					account_groups ON (account_id=accounts.id)          \
+				LEFT JOIN                                               \
+					`groups` ON (account_groups.group_id=`groups`.id)   \
+				LEFT JOIN                                               \
+					alice_perms ON (`group`=account_groups.group_id)    \
+				LEFT JOIN                                               \
 					perm_keys ON (perm_keys.id=alice_perms.perm_key_id) \
 				WHERE accounts.id=?';
 		self._dbConn.query(sql, [userID], function(err, results)
@@ -165,7 +167,8 @@ Player.prototype = {
 			{
 				self._isSignedIntoSigil = true;
 
-				// Assign the username and group name/rank first
+				// Assign the user id, username and group name/rank first
+				self._sigilUserID    = results[0].user_id;
 				self._sigilUsername  = results[0].username;
 				self._sigilGroupName = results[0].group_name;
 				self._sigilGroupRank = parseInt(results[0].group_rank);
@@ -237,6 +240,56 @@ Player.prototype = {
 		this._wonderland._SendVoidFunction(voidFunc);
 	},
 
+	Ban: function(admin, reason)
+	{
+		var self = this;
+		
+		// Get the current server time in MySQL datetime format
+		var currentTimeInSQL = Moment().format('YYYY-MM-DD HH:mm:ss');
+
+		var sql =  "INSERT INTO             \
+						bans (              \
+							player_name,    \
+							player_ip,      \
+							player_guid,    \
+							admin_ign,      \
+							admin_sigil_id, \
+							admin_ip,       \
+							reason,         \
+							timestamp,      \
+							type            \
+						) VALUES (          \
+							?,              \
+							?,              \
+							?,              \
+							?,              \
+							?,              \
+							?,              \
+							?,              \
+							?,              \
+							1               \
+						)";
+		var preparedParams = [
+			this._name,
+			this._ipAddr,
+			this._guid,
+			admin.GetName(),
+			admin.GetSigilUserID(),
+			admin.GetIP(),
+			reason,
+			currentTimeInSQL
+		]
+		this._dbConn.query(sql, preparedParams, function(err, result)
+		{
+			// Kick the user showing the ban reason
+			self.Kick("^1= You have been banned =\n" +
+					  "^1/----------------------------------------------------------------\\\n" +
+					  "^7Your ban ID is ^1" + result.insertId + "^7\n" +
+					  "You were banned for: \n^1" + reason + "\n"+
+					  "^1\\----------------------------------------------------------------/");
+		});
+	},
+
 	GetIP: function()
 	{
 		return this._ipAddr;
@@ -262,6 +315,10 @@ Player.prototype = {
 	GetPerms: function()
 	{
 		return this._perms;
+	},
+	GetSigilUserID: function()
+	{
+		return this._sigilUserID;
 	},
 	GetSigilUsername: function()
 	{
