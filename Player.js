@@ -55,6 +55,17 @@ Player.prototype = {
 		this._name    = name;
 		this._geoData = geoData;
 
+		// Sigil related stuff
+		this._isSignedIntoSigil = false;
+		this._perms             = new Array();
+		this._sigilUsername     = "";
+		this._sigilGroupName    = "";
+		this._sigilGroupRank    = 0;
+
+		// Additional optional data
+		this._muted       = false;
+		this._nameChanged = 0; // Amount of times the player has change his name
+
 		// Sets object properties
 		this.RetrieveSigilLogin(callback);
 	},

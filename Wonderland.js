@@ -401,12 +401,6 @@ Wonderland.prototype = {
 	{
 		// De-initialize player properties
 		this._players[slotID]._connected = false;
-
-		this._players[slotID]._ipAddr  = "";
-		this._players[slotID]._guid    = "";
-		this._players[slotID]._name    = "";
-		this._players[slotID]._perms   = new Array();
-		this._players[slotID]._geoData = {};
 	},
 	
 	

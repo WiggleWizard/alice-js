@@ -52,9 +52,22 @@ function OnPlayerChat(player, message)
 
 function OnPlayerChangeName(player, newName)
 {
-	if(player.GetTimesChangedName() >= 3)
-		player.Tell("^1You may only change your name 3 times during your session");
+	var acceptNewName = false;
+
+	// If the player is signed into Sigil then change his name, otherwise limit name
+	// change to 3 times a session. (Session lasts as long as the player is on the server).
+	if(player.IsSignedIntoSigil())
+		acceptNewName = true;
 	else
+	{
+		if(player.GetTimesChangedName() >= 3)
+			player.Tell("^1You may only change your name 3 times during your session." +
+						"You must disconnect then reconnect if you wish to change your name again.");
+		else
+			acceptNewName = true;
+	}
+		
+	if(acceptNewName === true)
 		player.SetName(newName);
 }
 
