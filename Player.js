@@ -85,24 +85,27 @@ Player.prototype = {
 		var self = this;
 
 		// Search the sessions table to find out if the IP is logged in or not
-		var sql  = 'SELECT \
+		var sql  = 'SELECT             \
 						last_activity, \
-						user_data \
-					FROM \
-						sessions \
-					WHERE \
+						user_data      \
+					FROM               \
+						sessions       \
+					WHERE              \
 						ip_address=?';
 		this._dbConn.query(sql, [this._ipAddr], function(err, results)
 		{
+			// Select the latest session from the database
+			var latestResult = results[results.length - 1];
+
 			// Ensure that this user has/is logged in
-			if(results.length > 0 && results[0].user_data !== '')
+			if(results.length > 0 && latestResult.user_data !== '')
 			{
 				// Ensure that their last activity was at least less than 2 hours ago
 				var currentTime = Math.round(Date.now() / 1000);
-				if(parseInt(results[0].last_activity) > currentTime - 7200)
+				if(parseInt(latestResult.last_activity) > currentTime - 7200)
 				{
 					// Unserialize the PHP serial into JSON (We only really need their user ID)
-					var userData = PHPUnserialize.unserialize(results[0].user_data);
+					var userData = PHPUnserialize.unserialize(latestResult.user_data);
 
 					// userID would be 0 if no credible data was found
 					var userID = parseInt(userData.account_id);
