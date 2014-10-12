@@ -47,7 +47,6 @@ Player.prototype = {
 	Initialize: function(slotID, ipAddress, guid, name, geoData, callback)
 	{
 		var self = this;
-		console.log("Initializing slot: " + slotID);
 
 		this._connected = true;
 
@@ -92,11 +91,12 @@ Player.prototype = {
 					FROM               \
 						sessions       \
 					WHERE              \
-						ip_address=?';
+						ip_address=?   \
+					ORDER BY last_activity DESC';
 		this._dbConn.query(sql, [this._ipAddr], function(err, results)
 		{
 			// Select the latest session from the database
-			var latestResult = results[results.length - 1];
+			var latestResult = results[0];
 
 			// Ensure that this user has/is logged in
 			if(results.length > 0 && latestResult.user_data !== '')
@@ -236,7 +236,12 @@ Player.prototype = {
 	 */
 	Kick: function(message)
 	{
-		var argv = [this._slotID, message];
+		var kickMsg = 	"^5= You have been kicked =\n" +
+						"^5/----------------------------------------------------------------\\\n" +
+						"^7Reason for kick: \n^5" + message + "\n"+
+						"^5\\----------------------------------------------------------------/";
+
+		var argv = [this._slotID, kickMsg];
 		var argt = [1, 3];
 		
 		var voidFunc = new VoidFunction("KICKPLAYER", argv, argt);
@@ -244,6 +249,12 @@ Player.prototype = {
 		this._wonderland._SendVoidFunction(voidFunc);
 	},
 
+	/**
+	 * Bans a player, and records the ban in Sigil database.
+	 * 
+	 * @param {Player} admin  - The player that is banning the user.
+	 * @param {String} reason - Reason will be recorded and shown to the player.
+	 */
 	Ban: function(admin, reason)
 	{
 		var self = this;
@@ -292,6 +303,112 @@ Player.prototype = {
 					  "You were banned for: \n^1" + reason + "\n"+
 					  "^1\\----------------------------------------------------------------/");
 		});
+	},
+
+	/**
+	 * Records the warn, warn counts are based on player name.
+	 * 
+	 * @param {Function} callback(warnCount, lastWarnTime)
+	 */
+	GetWarnings: function(callback)
+	{
+		// Get the player's total warnings and react based on that
+		var sql =  'SELECT                     \
+						time AS datetime       \
+					FROM                       \
+						warnings               \
+					WHERE                      \
+						player_name=?          \
+					ORDER BY id DESC';
+		this._dbConn.query(sql, [this.GetName()], function(err, results)
+		{
+			callback(parseInt(results.length), results[0].datetime);
+		});
+	},
+
+	/**
+	 * Simply logs the warn if applicable.
+	 * 
+	 * @param {String}   reason
+	 * @param {Number}   waitTime - Amount in seconds before the same player can
+	 *                              be warned again.
+	 * @param {Function} callback(warnCount, lastWarnTime)
+	 *                   warnCount is the amount of warns AFTER the warn is issued if successful.
+	 *                   lastWarnTime is > 0 if the warn was not issued.
+	 */
+	Warn: function(admin, reason, waitTime, callback)
+	{
+		var self = this;
+
+		this.GetWarnings(function(warnCount, lastWarnTime)
+		{
+			// Not the player's first warning
+			if(warnCount > 0)
+			{
+				// If the last warning occured more than "waitTime" seconds ago then continue
+				var lastWarn = Moment(lastWarnTime);
+				var lastWarnDiff = Moment().diff(lastWarn, 'seconds');
+				console.log(lastWarnDiff);
+				if(lastWarnDiff > waitTime)
+				{
+					self.LogWarn(admin, reason);
+					callback(++warnCount, 0);
+				}
+				else
+				{
+					callback(warnCount, (waitTime - lastWarnDiff));
+				}
+			}
+			else
+			{
+				self.LogWarn(admin, reason);
+				callback(0, 0);
+			}
+		});
+	},
+
+	/**
+	 * No callback required as this should be a simple log, nothing actionable.
+	 * 
+	 * @param {Player} admin  - The admin who is issueing the warn.
+	 * @param {String} reason - Reason for the warn.
+	 */
+	LogWarn: function(admin, reason)
+	{
+		// Asyncronous log
+		var sql =  "INSERT INTO             \
+						warnings (          \
+							player_name,    \
+							player_ip,      \
+							player_guid,    \
+							admin_ign,      \
+							admin_sigil_id, \
+							admin_ip,       \
+							reason,         \
+							time            \
+						) VALUES (          \
+							?,              \
+							?,              \
+							?,              \
+							?,              \
+							?,              \
+							?,              \
+							?,              \
+							?               \
+						)";
+		// Get the current server time in MySQL datetime format
+		var currentTimeInSQL = Moment().format('YYYY-MM-DD HH:mm:ss');
+		var sqlParams = [
+			this._name,
+			this._ipAddr,
+			this._guid,
+			admin.GetName(),
+			admin.GetSigilUserID(),
+			admin.GetIP(),
+			reason,
+			currentTimeInSQL
+		]
+		this._dbConn.query(sql, sqlParams, function(err, results) {});
 	},
 
 	GetIP: function()

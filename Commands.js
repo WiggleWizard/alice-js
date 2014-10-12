@@ -1,3 +1,5 @@
+var Moment = require('moment');
+
 var Commands = {
 
 /***********************************************\
@@ -100,11 +102,7 @@ var Commands = {
 				else
 				{
 					wonderland.BroadcastChat("^5" + search[0].GetName() + " ^5was kicked, reason: " + arg2);
-					var kickMsg = 	"^5= You have been kicked =\n" +
-									"^5/----------------------------------------------------------------\\\n" +
-									"^7Reason for kick: \n^5" + argv[2] + "\n"+
-									"^5\\----------------------------------------------------------------/";
-					search[0].Kick(kickMsg);
+					search[0].Kick(arg2);
 				}
 			}
 			else
@@ -138,6 +136,47 @@ var Commands = {
 				{
 					wonderland.BroadcastChat("^5" + search[0].GetName() + " ^1was banned, reason: " + arg2);
 					search[0].Ban(player, arg2);
+				}
+			}
+			else
+			{
+				player.Tell("^1No players found in the search, try using an ID or different your search terms");
+			}
+		}
+	},
+
+	Warn: function(player, argv, wonderland)
+	{
+		// Argv includes the actual command too
+		var argc = argv.length - 1;
+
+		if(argc < 2)
+		{
+			player.Tell("^1Usage: !warn/w [id / partial name] [reason]");
+			player.Tell("^1-> Warns the player with a reason, player is kicked/tempbanned/banned after x amount of warnings.");
+		}
+		else
+		{
+			arg1   = argv[1].trim();
+			arg2   = argv[2].trim();
+			search = wonderland.FindPlayers(arg1);
+
+			if(search != null)
+			{
+				if(search.length > 1)
+					player.Tell("^1Multiple players found with that name, try refine your search");
+				else
+				{
+					// Static vars for now, will make them dynamic later
+					var warnsTillKick = 3;
+					var warnsTillTBan = 6;
+					var warnsTillPBan = 9;
+
+					// Get the player's warnings and react according to how many he has
+					search[0].Warn(player, arg2, 30, function(warnCount, lastWarnTime)
+					{
+
+					});
 				}
 			}
 			else
