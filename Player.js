@@ -47,6 +47,7 @@ Player.prototype = {
 	Initialize: function(slotID, ipAddress, guid, name, geoData, callback)
 	{
 		var self = this;
+		console.log("Initializing slot: " + slotID);
 
 		this._connected = true;
 

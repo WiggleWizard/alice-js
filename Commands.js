@@ -172,12 +172,12 @@ var Commands = {
 
 					if(geoData.status !== 'fail')
 					{
-						player.Tell("^2IP: " + search[0].GetIP());
-						player.Tell("^2Country: " + geoData.country + "[" + geoData.countryCode + "]");
+						player.Tell("^2IP: ^7" + search[0].GetIP());
+						player.Tell("^2Country: ^7" + geoData.country + "[" + geoData.countryCode + "]");
 						if(geoData.city !== "")
-							player.Tell("^2City: " + geoData.city);
-						player.Tell("Approx. Long/Lat: " + geoData.lon + "deg/" + geoData.lat + "deg");
-						player.Tell("^2ISP: " + geoData.isp);
+							player.Tell("^2City: ^7" + geoData.city);
+						player.Tell("^2Approx. Long/Lat: ^7" + geoData.lon + "deg/" + geoData.lat + "deg");
+						player.Tell("^2ISP: ^7" + geoData.isp);
 					}
 					else
 						player.Tell("^1Geolocational data unavailable for this player, reason: " + geoData.message);
@@ -195,15 +195,24 @@ var Commands = {
 		// Lists the array of users it's handed
 		var ListUsers = function(playerArray)
 		{
-
+			var s = playerArray.length;
+			for(var i = 0; i < s; i++)
+			{
+				if(playerArray[i].IsConnected())
+					player.Tell("^5[" + playerArray[i].GetSlotID() + "] ^7" +
+								playerArray[i].GetName() +
+								" ^5[" + playerArray[i].GetIP() + "]");
+			}
 		}
 
 		// Argv includes the actual command too
 		var argc = argv.length - 1;
 
+		// If no params then print every player
 		if(argc === 0)
 		{
-
+			ListUsers(wonderland._players);
+			player.Tell("^3To view the entire list use Shift + `");
 		}
 	},
 

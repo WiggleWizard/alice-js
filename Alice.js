@@ -71,7 +71,7 @@ function OnPlayerChangeName(player, newName)
 		player.SetName(newName);
 }
 
-function OnJoinRequest(ipAddress, geoData)
+function OnJoinRequest(ipAddress, qPort, geoData)
 {
 	// Search the database for any bans matching the IP
 	var sql  = 'SELECT \
@@ -90,7 +90,7 @@ function OnJoinRequest(ipAddress, geoData)
 		// If there is no result then let them join of course, otherwise
 		// deny the IP and tell them why they are banned.
 		if(resultSize <= 0)
-			wonderland.JoinRequestAccept(ipAddress);
+			wonderland.JoinRequestAccept(ipAddress, qPort);
 		else
 		{
 			var message = "^1= You are banned =\n" +
@@ -98,7 +98,7 @@ function OnJoinRequest(ipAddress, geoData)
 						  "^7Your ban ID is ^1" + result[0].id + "^7\n" +
 						  "You are banned for: \n^1" + result[0].reason + "\n"+
 						  "^1\\----------------------------------------------------------------/";
-			wonderland.JoinRequestDeny(ipAddress, message);
+			wonderland.JoinRequestDeny(ipAddress, qPort, message);
 		}
 	});
 }
@@ -131,7 +131,7 @@ function Main()
 	bang.RegisterCommand("kick", "kick", 2, Commands.Kick); bang.RegisterCommand("k", "kick", 2, Commands.Kick);
 	bang.RegisterCommand("ban", "ban", 2, Commands.Ban); bang.RegisterCommand("b", "ban", 2, Commands.Ban);
 	bang.RegisterCommand("geo", "geo", 1, Commands.Geo);
-	bang.RegisterCommand("plist", "plist", 1, Commands.ListPlayers);
+	bang.RegisterCommand("plist", "plist", 1, Commands.PlayerList); bang.RegisterCommand("p", "plist", 1, Commands.PlayerList);
 
 	// Fun commands
 	bang.RegisterCommand("ping", null, 0, Commands.Ping);

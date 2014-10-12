@@ -10,7 +10,8 @@
  */
 
 /* NodeJS Libs */
-var Net = require('net');
+var Net   = require('net');
+var Async = require('async');
 
 /* Static User Libs */
 var EventParser  = require('./EventParser.js');
@@ -179,20 +180,20 @@ Wonderland.prototype = {
 		this._SendVoidFunction(voidFunc);
 	},
 
-	JoinRequestDeny: function(ipAddress, message)
+	JoinRequestDeny: function(ipAddress, qPort, message)
 	{
-		var argv = [ipAddress, message];
-		var argt = [3, 3];
+		var argv = [ipAddress, qPort, message];
+		var argt = [3, 1, 3];
 		
 		var voidFunc = new VoidFunction("LIMBODENY", argv, argt);
 
 		this._SendVoidFunction(voidFunc);
 	},
 
-	JoinRequestAccept: function(ipAddress)
+	JoinRequestAccept: function(ipAddress, qPort)
 	{
-		var argv = [ipAddress];
-		var argt = [3];
+		var argv = [ipAddress, qPort];
+		var argt = [3, 1];
 		
 		var voidFunc = new VoidFunction("LIMBOACCEPT", argv, argt);
 
@@ -233,25 +234,42 @@ Wonderland.prototype = {
 		// if Alice was started after server has been initialized).
 		var returnFunc = new ReturnFunction(2, "PLAYERDATA", [], [], function(playerData)
 		{
+			var playersBuilt = 0;
+
 			// Parse the player data
 			var lines = playerData.split('\n');
 			var linec = lines.length;
 
-			for(var i = 0; i < linec; i++)
+			// Create async task list to initialize players
+			var asyncTasks = [];
+			lines.forEach(function(line)
 			{
-				if(lines[i] === "") continue;
-
-				var playerInfo = lines[i].split('\\\\');
-				var slotID = parseInt(playerInfo[0]);
-
-				self._geoIP.Locate(playerInfo[1], function(geoData)
+				asyncTasks.push(function(callback)
 				{
-					self._players[slotID].Initialize(slotID, playerInfo[1], playerInfo[2], playerInfo[3], geoData, function() {});
-				});
-			}
+					if(line === "")
+					{
+						callback();
+						return;
+					}
 
-			// Execute user defined callbacks when Alice has properly initialized
-			self._ExecBoundFunctionsOnAliceInit();
+					var playerInfo = line.split('\\\\');
+					var slotID = parseInt(playerInfo[0]);
+
+					self._geoIP.Locate(playerInfo[1], function(geoData)
+					{
+						self._players[slotID].Initialize(slotID, playerInfo[1], playerInfo[2], playerInfo[3], geoData, function() {});
+
+						callback();
+					});
+				});
+			});
+
+			// Once all players are initialized correctly, then call any bound functions
+			Async.parallel(asyncTasks, function()
+			{
+				self._ExecBoundFunctionsOnAliceInit();
+			});
+
 		});
 		this._SendReturnFunction(returnFunc);
 	},
@@ -381,7 +399,7 @@ Wonderland.prototype = {
 	 * Called when the actual server has been initialized correctly. Never called
 	 * if the server's already initialized
 	 */
-	_OnJoinRequest: function(ipAddress, callback)
+	_OnJoinRequest: function(ipAddress, qPort, callback)
 	{
 		// Geolocate the player
 		this._geoIP.Locate(ipAddress, function(geoData)
@@ -461,9 +479,9 @@ Wonderland.prototype = {
 				var self = this;
 
 				// Execute internal callback before executing the user defined ones
-				this._OnJoinRequest(e.GetArg(0), function(geoData)
+				this._OnJoinRequest(e.GetArg(0), e.GetArg(1), function(geoData)
 				{
-					self._ExecBoundFunctionsOnJoinReq(e.GetArg(0), geoData);
+					self._ExecBoundFunctionsOnJoinReq(e.GetArg(0), e.GetArg(1), geoData);
 				});
 			}
 			else if(e.GetName() === "JOIN")
