@@ -1,3 +1,5 @@
+var Moment = require('moment');
+
 var Wonderland = require('./Wonderland.js');
 var Bang       = require('./Bang.js');       // In-game command handler
 var Utils      = require('./Utils.js');      // General utilities
@@ -78,6 +80,8 @@ function OnJoinRequest(ipAddress, qPort, geoData)
 					id, \
 					player_name, \
 					player_ip, \
+					unban_datetime, \
+					type, \
 					reason \
 				FROM \
 					bans \
@@ -93,12 +97,24 @@ function OnJoinRequest(ipAddress, qPort, geoData)
 			wonderland.JoinRequestAccept(ipAddress, qPort);
 		else
 		{
-			var message = "^1= You are banned =\n" +
-						  "^1/----------------------------------------------------------------\\\n" +
-						  "^7Your ban ID is ^1" + result[0].id + "^7\n" +
-						  "You are banned for: \n^1" + result[0].reason + "\n"+
-						  "^1\\----------------------------------------------------------------/";
-			wonderland.JoinRequestDeny(ipAddress, qPort, message);
+			if(result[0]['type'] === 1)
+			{
+				var message = "^1= You are banned =\n" +
+							  "^1/----------------------------------------------------------------\\\n" +
+							  "^7Your ban ID is ^1" + result[0].id + "^7\n" +
+							  "You are banned for: \n^1" + result[0].reason + "\n"+
+							  "^1\\----------------------------------------------------------------/";
+				wonderland.JoinRequestDeny(ipAddress, qPort, message);
+			}
+			else
+			{
+				var message = "^1= You are temporarily banned for " + Moment(result[0]['unban_datetime']).fromNow(true) + " =\n" +
+							  "^1/----------------------------------------------------------------\\\n" +
+							  "^7Your ban ID is ^1" + result[0].id + "^7\n" +
+							  "You are temp banned for: \n^1" + result[0].reason + "\n"+
+							  "^1\\----------------------------------------------------------------/";
+				wonderland.JoinRequestDeny(ipAddress, qPort, message);
+			}
 		}
 	});
 }
