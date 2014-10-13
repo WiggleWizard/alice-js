@@ -4,6 +4,7 @@ var Moment         = require('moment');
 /* User Objects */
 var VoidFunction   = require('./VoidFunction.js');
 var ReturnFunction = require('./ReturnFunction.js');
+var Utils          = require('./Utils.js');
 
 function Player(wonderland)
 {
@@ -249,6 +250,16 @@ Player.prototype = {
 		this._wonderland._SendVoidFunction(voidFunc);
 	},
 
+	KickCustom: function(message)
+	{
+		var argv = [this._slotID, message];
+		var argt = [1, 3];
+		
+		var voidFunc = new VoidFunction("KICKPLAYER", argv, argt);
+
+		this._wonderland._SendVoidFunction(voidFunc);
+	},
+
 	/**
 	 * Bans a player, and records the ban in Sigil database.
 	 * 
@@ -297,11 +308,68 @@ Player.prototype = {
 		this._dbConn.query(sql, preparedParams, function(err, result)
 		{
 			// Kick the user showing the ban reason
-			self.Kick("^1= You have been banned =\n" +
-					  "^1/----------------------------------------------------------------\\\n" +
-					  "^7Your ban ID is ^1" + result.insertId + "^7\n" +
-					  "You were banned for: \n^1" + reason + "\n"+
-					  "^1\\----------------------------------------------------------------/");
+			self.KickCustom(
+				"^1= You have been banned =\n" +
+				"^1/----------------------------------------------------------------\\\n" +
+				"^7Your ban ID is ^1" + result.insertId + "^7\n" +
+				"You were banned for: \n^1" + reason + "\n"+
+				"^1\\----------------------------------------------------------------/");
+		});
+	},
+
+	TempBan: function(admin, macro, reason)
+	{
+		var self = this;
+		
+		// Get the current server time in MySQL datetime format
+		var currentTimeInSQL   = Moment().format('YYYY-MM-DD HH:mm:ss');
+		var unbanMoment        = Utils.AddMacroToMoment(Moment(), macro);
+		var unbanDatetimeInSQL = unbanMoment.format('YYYY-MM-DD HH:mm:ss');
+
+		var sql =  "INSERT INTO             \
+						bans (              \
+							player_name,    \
+							player_ip,      \
+							player_guid,    \
+							admin_ign,      \
+							admin_sigil_id, \
+							admin_ip,       \
+							reason,         \
+							timestamp,      \
+							unban_datetime, \
+							type            \
+						) VALUES (          \
+							?,              \
+							?,              \
+							?,              \
+							?,              \
+							?,              \
+							?,              \
+							?,              \
+							?,              \
+							?,              \
+							2               \
+						)";
+		var preparedParams = [
+			this._name,
+			this._ipAddr,
+			this._guid,
+			admin.GetName(),
+			admin.GetSigilUserID(),
+			admin.GetIP(),
+			reason,
+			currentTimeInSQL,
+			unbanDatetimeInSQL
+		]
+		this._dbConn.query(sql, preparedParams, function(err, result)
+		{
+			// Kick the user showing the ban reason
+			self.KickCustom(
+				"^1= You have been temporarily banned for " + unbanMoment.fromNow(true) + " =\n" +
+				"^1/----------------------------------------------------------------\\\n" +
+				"^7Your ban ID is ^1" + result.insertId + "^7\n" +
+				"You were banned for: \n^1" + reason + "\n"+
+				"^1\\----------------------------------------------------------------/");
 		});
 	},
 

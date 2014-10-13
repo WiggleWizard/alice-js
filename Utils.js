@@ -1,3 +1,5 @@
+var Moment = require('moment');
+
 var Utils = {
 
 	/*==============================================================================================*\
@@ -41,29 +43,29 @@ var Utils = {
 
 		return null;
 	},
-    
-    /**
-     * Splits a string into tokens.
-     * 
-     * @param {string} str       - Input string
-     * @param {string} separator 
-     * @param {uint}   limit
-     * @return {array}
-     */
-    Strtok: function(str, separator, limit)
-    {
-        str = str.split(separator);
+	
+	/**
+	 * Splits a string into tokens.
+	 * 
+	 * @param {string} str       - Input string
+	 * @param {string} separator 
+	 * @param {uint}   limit
+	 * @return {array}
+	 */
+	Strtok: function(str, separator, limit)
+	{
+		str = str.split(separator);
 
-        if(str.length > limit)
-        {
-            var ret = str.splice(0, limit);
-            ret.push(str.join(separator));
+		if(str.length > limit)
+		{
+			var ret = str.splice(0, limit);
+			ret.push(str.join(separator));
 
-            return ret;
-        }
+			return ret;
+		}
 
-        return str;
-    },
+		return str;
+	},
 
 	/**
 	 * Generates a random number (int) between min and max
@@ -88,17 +90,54 @@ var Utils = {
 	{
 		return haystack.replace(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/, replace);
 	},
-    
-    /**
-     * Strips all CoD4 related color from in.
-     * 
-     * @param {string} string - String to be stripped.
-     * @return {string}
-     */
-    StripColor: function(string)
-    {
-        return string.replace(/\^\d/, '');
-    },
+	
+	/**
+	 * Strips all CoD4 related color from in.
+	 * 
+	 * @param {string} string - String to be stripped.
+	 * @return {string}
+	 */
+	StripColor: function(string)
+	{
+		return string.replace(/\^\d/, '');
+	},
+
+	AddMacroToMoment: function(moment, macro)
+	{
+		var weeks   = 0;
+		var days    = 0;
+		var hours   = 0;
+		var minutes = 0;
+
+		// Capture weeks if applicable
+		var re = /(\d{1,3})w/g;
+		var m  = re.exec(macro);
+		if(m !== null && m.length > 0)
+			weeks = m[1];
+		// Capture days if applicable
+		re = /(\d{1,3})d/g;
+		m  = re.exec(macro);
+		if(m !== null && m.length > 0)
+			days = m[1];
+		// Capture hours if applicable
+		re = /(\d{1,3})h/g;
+		m  = re.exec(macro);
+		if(m !== null && m.length > 0)
+			hours = m[1];
+		// Capture minutes if applicable
+		re = /(\d{1,3})m/g;
+		m  = re.exec(macro);
+		if(m !== null && m.length > 0)
+			minutes = m[1];
+
+		// Now add to moment
+		return moment.add({
+			weeks:   weeks,
+			days:    days,
+			hours:   hours,
+			minutes: minutes
+		});
+	},
 
 
 

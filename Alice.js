@@ -131,6 +131,7 @@ function Main()
 	bang.RegisterCommand("kick", "kick", 2, Commands.Kick);
 	bang.RegisterCommand("k",    "kick", 2, Commands.Kick);         // Alias for Kick
 	bang.RegisterCommand("ban", "ban", 2, Commands.Ban);
+	bang.RegisterCommand("tban", "tempban", 3, Commands.TempBan);
 	bang.RegisterCommand("b",   "ban", 2, Commands.Ban);            // Alias for Ban
 	bang.RegisterCommand("warn", "warn", 2, Commands.Warn);
 	bang.RegisterCommand("w",    "warn", 2, Commands.Warn);         // Alias for Warn

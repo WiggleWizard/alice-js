@@ -1,5 +1,7 @@
 var Moment = require('moment');
 
+var Utils = require('./Utils.js');
+
 var Commands = {
 
 /***********************************************\
@@ -145,6 +147,50 @@ var Commands = {
 		}
 	},
 
+	TempBan: function(player, argv, wonderland)
+	{
+		var PrintUsage = function()
+		{
+			player.Tell("^1Usage: !tb/tban [id / partial name] [time macro] [reason]");
+			player.Tell("^1-> Temporarily bans the player and shows the reason to him when removed from the server.");
+		}
+
+		// Argv includes the actual command too
+		var argc = argv.length - 1;
+
+		if(argc < 3)
+		{
+			PrintUsage();
+		}
+		else
+		{
+			arg1 = argv[1].trim();
+			arg2 = argv[2].trim();
+			arg3 = argv[3].trim();
+			search = wonderland.FindPlayers(arg1);
+
+			// Guards
+			if(arg1 === "" || arg2 === "" || arg3 === "")
+				PrintUsage();
+
+			if(search != null)
+			{
+				if(search.length > 1)
+					player.Tell("^1Multiple players found with that name, try refine your search");
+				else
+				{
+					var unbanMoment = Utils.AddMacroToMoment(Moment(), arg2);
+					wonderland.BroadcastChat("^5" + search[0].GetName() + " ^1was temp banned for " + unbanMoment.fromNow(true) + ", reason: " + arg3);
+					search[0].TempBan(player, arg2, arg3);
+				}
+			}
+			else
+			{
+				player.Tell("^1No players found in the search, try using an ID or different your search terms");
+			}
+		}
+	},
+
 	Warn: function(player, argv, wonderland)
 	{
 		// Argv includes the actual command too
@@ -183,6 +229,12 @@ var Commands = {
 							if(warnCount === 3)
 							{
 								search[0].Kick("Too many warnings");
+							}
+							else if(warnCount === warnsTillTBan)
+							{}
+							else if(warnCount === warnsTillPBan)
+							{
+								player.Ban(player, "Too many warnings");
 							}
 						}
 						else
