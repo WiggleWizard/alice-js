@@ -175,7 +175,20 @@ var Commands = {
 					// Get the player's warnings and react according to how many he has
 					search[0].Warn(player, arg2, 30, function(warnCount, lastWarnTime)
 					{
+						// Last warn time will be 0 if warn was issued 
+						if(lastWarnTime === 0)
+						{
+							wonderland.BroadcastChat(search[0].GetName() + " was warned for: " + arg2);
 
+							if(warnCount === 3)
+							{
+								search[0].Kick("Too many warnings");
+							}
+						}
+						else
+						{
+							player.Tell("You cannot warn this player for another " + lastWarnTime + " seconds");
+						}
 					});
 				}
 			}

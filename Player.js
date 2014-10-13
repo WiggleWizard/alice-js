@@ -322,7 +322,10 @@ Player.prototype = {
 					ORDER BY id DESC';
 		this._dbConn.query(sql, [this.GetName()], function(err, results)
 		{
-			callback(parseInt(results.length), results[0].datetime);
+			if(results.length > 0)
+				callback(results.length, results[0].datetime);
+			else
+				callback(0, 0);
 		});
 	},
 
@@ -348,7 +351,7 @@ Player.prototype = {
 				// If the last warning occured more than "waitTime" seconds ago then continue
 				var lastWarn = Moment(lastWarnTime);
 				var lastWarnDiff = Moment().diff(lastWarn, 'seconds');
-				console.log(lastWarnDiff);
+
 				if(lastWarnDiff > waitTime)
 				{
 					self.LogWarn(admin, reason);
@@ -362,7 +365,7 @@ Player.prototype = {
 			else
 			{
 				self.LogWarn(admin, reason);
-				callback(0, 0);
+				callback(1, 0);
 			}
 		});
 	},
