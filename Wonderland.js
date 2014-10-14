@@ -23,6 +23,7 @@ var ReturnFunction = require('./ReturnFunction.js');
 var Player         = require('./Player.js');
 var GeoIP          = require('./GeoIP.js');
 var Database       = require('./Database.js');
+var Printer        = require('./Printer.js');
 
 
 function Wonderland()
@@ -101,7 +102,7 @@ Wonderland.prototype = {
 	 * @return {array}         - Array of slot/index IDs of each player matched. Null if
 	 *                           no players found.
 	 */
-	FindPlayerIDsByPartName: function(needle)
+	FindPlayersByPartName: function(needle)
 	{
 		// Names cannot be longer than 14 characters so why waste the time trying to
 		// look for one? ;)
@@ -157,10 +158,40 @@ Wonderland.prototype = {
 				playersFound = null;
 		}
 		else
-			playersFound = this.FindPlayerIDsByPartName(needle);
+			playersFound = this.FindPlayersByPartName(needle);
 
 		return playersFound;
 	},
+	
+	/**
+	 * Finds a single player using needle as search term, takes ID and player
+	 * partial name. If 'player' is not null then the function will autoprint warnings
+	 * to the player ('player').
+	 * 
+	 * @param  {String} needle - Search term.
+	 * @param  {Player} player - Print warnings/errors for player.
+	 * @return {Player} - Not null if 1 player was found
+	 */
+	FindPlayer: function(needle, player)
+	{
+		var playerArray = FindPlayers(needle);
+		
+		if(playerArray == null)
+		{
+			player.Tell("^1No players found in the search, try using an ID or different your search terms");
+			return null;
+		}
+		
+		if(playerArray.length > 1)
+		{
+			player.Tell("^1Multiple players found with that name:");
+			Printer.ListPlayersFor(player, playerArray);
+			return null;
+		}
+		
+		// Only 1 player was found
+		return playerArray[0];
+	}
 	
 	/* ============ VOID FUNCTIONS
 	\* ========================================== */

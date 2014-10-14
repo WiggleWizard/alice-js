@@ -1,6 +1,7 @@
 var Moment = require('moment');
 
-var Utils = require('./Utils.js');
+var Utils   = require('./Utils.js');
+var Printer = require('./Printer.js');
 
 var Commands = {
 
@@ -37,40 +38,35 @@ var Commands = {
 			// Player actually needs perms for this variation
 			if(player.HasPerm("perm_target"))
 			{
-				arg1 = argv[1].trim();
-
-				if(arg1 === "")
+				var PrintUsage = function()
 				{
 					player.Tell("^1Usage: !perm [id / partial name]");
 					player.Tell("^1-> Retrieves detailed data about the target.");
 				}
-				else
+				
+				arg1 = argv[1].trim();
+
+				// Arg guard
+				if(arg1 === "")
 				{
-					search = wonderland.FindPlayers(arg1);
+					PrintUsage();
+					return;
+				}
+			
+				var target = wonderland.FindPlayer(arg1, player);
 
-					if(search != null)
-					{
-						if(search.length > 1)
-							player.Tell("^1Multiple players found with that name, try refine your search");
-						else
-						{
-							player.Tell("^6Slot ID: " + search[0].GetSlotID());
-							player.Tell("^6Ingame Name: " + search[0].GetName());
-							player.Tell("^6IP: " + search[0].GetIP());
+				if(target !== null)
+				{
+					player.Tell("^6Slot ID: " + target.GetSlotID());
+					player.Tell("^6Ingame Name: " + target.GetName());
+					player.Tell("^6IP: " + target.GetIP());
 
-							var geoData = search[0].GetGeoData();
-							if(geoData.status === 'fail')
-								player.Tell("^1No geo data available");
-							else
-							{
-								player.Tell("^6Country: " + geoData.country + "[" + geoData.countryCode + "]");
-								player.Tell("^5To get more geographical information, use !geo [id / partial name]");
-							}
-						}
-					}
+					var geoData = target.GetGeoData();
+					if(geoData.status === 'fail')
+						player.Tell("^1No geo data available");
 					else
 					{
-						player.Tell("^1No players found in the search, try using an ID or different your search terms");
+						player.Tell("^6Country: " + geoData.country + " [" + geoData.countryCode + "]");
 					}
 				}
 			}
@@ -83,34 +79,37 @@ var Commands = {
 
 	Kick: function(player, argv, wonderland)
 	{
+		var PrintUsage = function()
+		{
+			player.Tell("^1Usage: !kick [id / partial name] [reason]");
+			player.Tell("^1-> Kicks the player and shows the reason to him when kicked.");
+		}
+		
 		// Argv includes the actual command too
 		var argc = argv.length - 1;
 
 		if(argc < 2)
 		{
-			player.Tell("^1Usage: !kick [id / partial name] [reason]");
-			player.Tell("^1-> Kicks the player and shows the reason to him when kicked.");
+			PrintUsage();
+			return;
 		}
-		else
+		
+		arg1 = argv[1].trim();
+		arg2 = argv[2].trim();
+		
+		// Arg guard
+		if(arg1 === "" || arg2 === "")
 		{
-			arg1 = argv[1].trim();
-			arg2 = argv[2].trim();
-			search = wonderland.FindPlayers(arg1);
+			PrintUsage();
+			return;
+		}
+		
+		var target = wonderland.FindPlayer(arg1, player);
 
-			if(search != null)
-			{
-				if(search.length > 1)
-					player.Tell("^1Multiple players found with that name, try refine your search");
-				else
-				{
-					wonderland.BroadcastChat("^5" + search[0].GetName() + " ^5was kicked, reason: " + arg2);
-					search[0].Kick(arg2);
-				}
-			}
-			else
-			{
-				player.Tell("^1No players found in the search, try using an ID or different your search terms");
-			}
+		if(target !== null)
+		{
+			wonderland.BroadcastChat("^5" + target.GetName() + " ^5was kicked, reason: " + arg2);
+			target.Kick(arg2);
 		}
 	},
 
@@ -167,26 +166,21 @@ var Commands = {
 			arg1 = argv[1].trim();
 			arg2 = argv[2].trim();
 			arg3 = argv[3].trim();
-			search = wonderland.FindPlayers(arg1);
-
-			// Guards
+			
+			// Arg guard
 			if(arg1 === "" || arg2 === "" || arg3 === "")
+			{
 				PrintUsage();
-
-			if(search != null)
-			{
-				if(search.length > 1)
-					player.Tell("^1Multiple players found with that name, try refine your search");
-				else
-				{
-					var unbanMoment = Utils.AddMacroToMoment(Moment(), arg2);
-					wonderland.BroadcastChat("^5" + search[0].GetName() + " ^1was temp banned for " + unbanMoment.fromNow(true) + ", reason: " + arg3);
-					search[0].TempBan(player, arg2, arg3);
-				}
+				return;
 			}
-			else
+			
+			var target = wonderland.FindPlayer(arg1, player);
+
+			if(target !== null)
 			{
-				player.Tell("^1No players found in the search, try using an ID or different your search terms");
+				var unbanMoment = Utils.AddMacroToMoment(Moment(), arg2);
+				wonderland.BroadcastChat("^5" + target.GetName() + " ^1was temp banned for " + unbanMoment.fromNow(true) + ", reason: " + arg3);
+				target.TempBan(player, arg2, arg3);
 			}
 		}
 	},
@@ -253,44 +247,47 @@ var Commands = {
 
 	Geo: function(player, argv, wonderland)
 	{
+		var PrintUsage = function()
+		{
+			player.Tell("^1Usage: !geo [id / partial name]");
+			player.Tell("^1-> Shows more geological data.");
+		}
+		
 		// Argv includes the actual command too
 		var argc = argv.length - 1;
 
 		if(argc < 1)
 		{
-			player.Tell("^1Usage: !geo [id / partial name]");
-			player.Tell("^1-> Shows more geological data.");
+			PrintUsage();
+			return;
 		}
-		else
+
+		arg1 = argv[1].trim();
+		
+		// Arg guard
+		if(arg1 === "")
 		{
-			arg1 = argv[1].trim();
-			search = wonderland.FindPlayers(arg1);
+			PrintUsage();
+			return;
+		}
+		
+		var target = wonderland.FindPlayer(arg1, player);
+		
+		if(target !== null)
+		{
+			var geoData = target.GetGeoData();
 
-			if(search != null)
+			if(geoData.status !== 'fail')
 			{
-				if(search.length > 1)
-					player.Tell("^1Multiple players found with that name, try refine your search");
-				else
-				{
-					var geoData = search[0].GetGeoData();
-
-					if(geoData.status !== 'fail')
-					{
-						player.Tell("^2IP: ^7" + search[0].GetIP());
-						player.Tell("^2Country: ^7" + geoData.country + "[" + geoData.countryCode + "]");
-						if(geoData.city !== "")
-							player.Tell("^2City: ^7" + geoData.city);
-						player.Tell("^2Approx. Long/Lat: ^7" + geoData.lon + "deg/" + geoData.lat + "deg");
-						player.Tell("^2ISP: ^7" + geoData.isp);
-					}
-					else
-						player.Tell("^1Geolocational data unavailable for this player, reason: " + geoData.message);
-				}
+				player.Tell("^2IP: ^7" + target.GetIP());
+				player.Tell("^2Country: ^7" + geoData.country + "[" + geoData.countryCode + "]");
+				if(geoData.city !== "")
+					player.Tell("^2City: ^7" + geoData.city);
+				player.Tell("^2Approx. Long/Lat: ^7" + geoData.lon + "deg/" + geoData.lat + "deg");
+				player.Tell("^2ISP: ^7" + geoData.isp);
 			}
 			else
-			{
-				player.Tell("^1No players found in the search, try using an ID or different your search terms");
-			}
+				player.Tell("^1Geolocational data unavailable for this player, reason: " + geoData.message);
 		}
 	},
 
@@ -317,6 +314,47 @@ var Commands = {
 		{
 			ListUsers(wonderland._players);
 			player.Tell("^3To view the entire list use Shift + `");
+		}
+		else if(argc === 1)
+		{
+			// Page arg
+			
+		}
+	},
+	
+	MutePlayer: function(player, argv, wonderland)
+	{
+		var PrintUsage = function()
+		{
+			player.Tell("^1Usage: !mute [id / partial name]");
+			player.Tell("^1-> Mutes a player so his chat is never shown to other players.");
+		}
+		
+		// Argv includes the actual command too
+		var argc = argv.length - 1;
+
+		if(argc < 1)
+		{
+			PrintUsage();
+			return;
+		}
+		
+		arg1 = argv[1].trim();
+		
+		// Arg guard
+		if(arg1 === "")
+		{
+			PrintUsage();
+			return;
+		}
+		
+		var target = wonderland.FindPlayer(arg1, player);
+		
+		if(target !== null)
+		{
+			target.Mute();
+			target.Tell("^1You were muted");
+			player.Tell("^2" + target.GetName() + " was muted");
 		}
 	},
 
@@ -349,7 +387,7 @@ var Commands = {
 			}
 			else
 			{
-				search = wonderland.FindPlayerIDsByPartName(arg1);
+				search = wonderland.FindPlayersByPartName(arg1);
 
 				if(search != null)
 				{

@@ -36,8 +36,15 @@ function OnPlayerChat(player, message)
 	// If it was not a command then produce normal chat
 	if(cmdResult === 0)
 	{
-		console.log('[' + player.GetSlotID() + '] ' + player.GetName() + ': ' + message);
-		wonderland.BroadcastChat(player.GetName() + ": " + message);
+		if(!player.IsMuted())
+		{
+			console.log('[' + player.GetSlotID() + '] ' + player.GetName() + ': ' + message);
+			wonderland.BroadcastChat(player.GetName() + ": " + message);
+		}
+		else
+		{
+			player.Tell('^1You are muted');
+		}
 	}
 	// No such command
 	else if(cmdResult === 2)
@@ -155,6 +162,7 @@ function Main()
 	bang.RegisterCommand("name", "rename", 1, Commands.Name);
 	bang.RegisterCommand("plist", "plist", 1, Commands.PlayerList);
 	bang.RegisterCommand("p",     "plist", 1, Commands.PlayerList); // Alias for PList
+	bang.RegisterCommand("mute", "mute", 1, Commands.MutePlayer);
 
 	// Fun commands
 	bang.RegisterCommand("ping", null, 0, Commands.Ping);

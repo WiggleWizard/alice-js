@@ -481,6 +481,15 @@ Player.prototype = {
 		]
 		this._dbConn.query(sql, sqlParams, function(err, results) {});
 	},
+	
+	Mute: function()
+	{
+		this._muted = true;
+	},
+	Unmute: function()
+	{
+		this._muted = false;
+	},
 
 	GetIP: function()
 	{
@@ -501,6 +510,10 @@ Player.prototype = {
 	GetTimesChangedName: function()
 	{
 		return this._nameChanged;
+	},
+	IsMuted: function()
+	{
+		return this._muted;
 	},
 
 
