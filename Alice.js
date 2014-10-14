@@ -38,8 +38,9 @@ function OnPlayerChat(player, message)
 	{
 		if(!player.IsMuted())
 		{
+			var name = Utils.StripColor(player.GetName());
 			console.log('[' + player.GetSlotID() + '] ' + player.GetName() + ': ' + message);
-			wonderland.BroadcastChat(player.GetName() + ": ^7" + message);
+			wonderland.BroadcastChat(name + ": ^7" + message);
 		}
 		else
 		{
