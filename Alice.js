@@ -39,7 +39,7 @@ function OnPlayerChat(player, message)
 		if(!player.IsMuted())
 		{
 			console.log('[' + player.GetSlotID() + '] ' + player.GetName() + ': ' + message);
-			wonderland.BroadcastChat(player.GetName() + ": " + message);
+			wonderland.BroadcastChat(player.GetName() + ": ^7" + message);
 		}
 		else
 		{
@@ -93,7 +93,8 @@ function OnJoinRequest(ipAddress, qPort, geoData)
 				FROM \
 					bans \
 				WHERE \
-					player_ip=? AND banned=1';
+					player_ip=? AND banned=1 \
+				ORDER BY id DESC';
 	databaseConn.query(sql, [ipAddress], function(err, result)
 	{
 		var resultSize = result.length;
@@ -115,12 +116,19 @@ function OnJoinRequest(ipAddress, qPort, geoData)
 			}
 			else
 			{
-				var message = "^1= You are temporarily banned for " + Moment(result[0]['unban_datetime']).fromNow(true) + " =\n" +
-							  "^1/----------------------------------------------------------------\\\n" +
-							  "^7Your ban ID is ^1" + result[0].id + "^7\n" +
-							  "You are temp banned for: \n^1" + result[0].reason + "\n"+
-							  "^1\\----------------------------------------------------------------/";
-				wonderland.JoinRequestDeny(ipAddress, qPort, message);
+				if(Moment(result[0]['unban_datetime']).isAfter(Moment()))
+				{
+					var message = "^1= You are temporarily banned for " + Moment(result[0]['unban_datetime']).fromNow(true) + " =\n" +
+								  "^1/----------------------------------------------------------------\\\n" +
+								  "^7Your ban ID is ^1" + result[0].id + "^7\n" +
+								  "You are temp banned for: \n^1" + result[0].reason + "\n"+
+								  "^1\\----------------------------------------------------------------/";
+					wonderland.JoinRequestDeny(ipAddress, qPort, message);
+				}
+				else
+				{
+					wonderland.JoinRequestAccept(ipAddress, qPort);
+				}
 			}
 		}
 	});
