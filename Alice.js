@@ -4,6 +4,7 @@ var Wonderland = require('./Wonderland.js');
 var Bang       = require('./Bang.js');       // In-game command handler
 var Utils      = require('./Utils.js');      // General utilities
 var Commands   = require('./Commands.js');   // In-game commands
+var Printer    = require('./Printer.js');    // Printing patterns
 
 /***********************************************\
 |* GLOBALS
@@ -83,16 +84,16 @@ function OnPlayerChangeName(player, newName)
 function OnJoinRequest(ipAddress, qPort, geoData)
 {
 	// Search the database for any bans matching the IP
-	var sql  = 'SELECT \
-					id, \
-					player_name, \
-					player_ip, \
+	var sql  = 'SELECT              \
+					id,             \
+					player_name,    \
+					player_ip,      \
 					unban_datetime, \
-					type, \
-					reason \
-				FROM \
-					bans \
-				WHERE \
+					type,           \
+					reason          \
+				FROM                \
+					bans            \
+				WHERE               \
 					player_ip=? AND banned=1';
 	databaseConn.query(sql, [ipAddress], function(err, result)
 	{
@@ -106,11 +107,13 @@ function OnJoinRequest(ipAddress, qPort, geoData)
 		{
 			if(result[0]['type'] === 1)
 			{
-				var message = "^1= You are banned =\n" +
-							  "^1/----------------------------------------------------------------\\\n" +
-							  "^7Your ban ID is ^1" + result[0].id + "^7\n" +
-							  "You are banned for: \n^1" + result[0].reason + "\n"+
-							  "^1\\----------------------------------------------------------------/";
+				var message = Printer.GenerateNotice(
+						'You are banned',                               // Title 
+						Utils.color.red,                                // Title Color
+						"^7Your ban ID is ^1" + result[0].id + "^7\n" + // Content
+						"You are banned for: \n^1" + result[0].reason,
+						Utils.color.red                                 // Box Color
+					);
 				wonderland.JoinRequestDeny(ipAddress, qPort, message);
 			}
 			else

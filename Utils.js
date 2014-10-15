@@ -253,6 +253,17 @@ var Utils = {
 		'Sabotage',
 		'Headquarters',
 		'Domination'
-	]
+	],
+	color: {
+		'red':       '^1',
+		'green':     '^2',
+		'yellow':    '^3',
+		'blue':      '^4',
+		'lightblue': '^5',
+		'pink':      '^6',
+		'white':     '^7',
+		'grey':      '^8',
+		'black':     '^9'
+	}
 };
 module.exports = Utils;

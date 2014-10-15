@@ -22,6 +22,20 @@ var Printer = {
                     " ^5[" + playerArray[i].GetIP() + "]");
             }
         }
-    }
+    },
+
+    /**
+     * Returns an ASCII box for the player on the notice screen.
+     * 
+     * @param {[type]} title [description]
+     * @param {[type]} body  [description]
+     */
+    GenerateNotice: function(title, titleColor, body, boxColor)
+    {
+        return  titleColor + "= " + title + " =\n" +
+                boxColor + "/----------------------------------------------------------------\\\n" +
+                body + "\n"+
+                boxColor + "\\----------------------------------------------------------------/";
+    },
 }
 module.exports = Printer;
