@@ -28,6 +28,8 @@ var Printer        = require('./Printer.js');
 
 function Wonderland()
 {
+	this._version = "1.0a";
+	
 	this._rabbitHolePath = "";
 	this._rabbitHoleSock = null;
 

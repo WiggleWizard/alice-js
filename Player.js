@@ -5,6 +5,7 @@ var Moment         = require('moment');
 var VoidFunction   = require('./VoidFunction.js');
 var ReturnFunction = require('./ReturnFunction.js');
 var Utils          = require('./Utils.js');
+var Printer        = require('./Printer.js');
 
 function Player(wonderland)
 {
@@ -237,10 +238,12 @@ Player.prototype = {
 	 */
 	Kick: function(message)
 	{
-		var kickMsg = 	"^5= You have been kicked =\n" +
-						"^5/----------------------------------------------------------------\\\n" +
-						"^7Reason for kick: \n^5" + message + "\n"+
-						"^5\\----------------------------------------------------------------/";
+		var kickMsg = Printer.GenerateNotice(
+			Utils.color.lightblue,
+			'You have been kicked',
+			'^7Reason for kick: \n' + Utils.color.lightblue + message,
+			Utils.color.lightblue
+		);
 
 		var argv = [this._slotID, kickMsg];
 		var argt = [1, 3];
@@ -307,13 +310,16 @@ Player.prototype = {
 		]
 		this._dbConn.query(sql, preparedParams, function(err, result)
 		{
+			var kickMsg = Printer.GenerateNotice(
+				Utils.color.red,
+				'You have been banned',
+				'^7Your ban ID is ^1' + result.insertId + '^7\n' +
+				'You were banned for: \n^1' + reason,
+				Utils.color.red
+			);
+
 			// Kick the user showing the ban reason
-			self.KickCustom(
-				"^1= You have been banned =\n" +
-				"^1/----------------------------------------------------------------\\\n" +
-				"^7Your ban ID is ^1" + result.insertId + "^7\n" +
-				"You were banned for: \n^1" + reason + "\n"+
-				"^1\\----------------------------------------------------------------/");
+			self.KickCustom(kickMsg);
 		});
 	},
 
@@ -503,6 +509,10 @@ Player.prototype = {
 	GetSlotID: function()
 	{
 		return this._slotID;
+	},
+	GetGUID: function()
+	{
+		return this._guid;
 	},
 	GetGeoData: function()
 	{

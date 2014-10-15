@@ -60,6 +60,7 @@ var Commands = {
 					player.Tell("^6Slot ID: " + target.GetSlotID());
 					player.Tell("^6Ingame Name: " + target.GetName());
 					player.Tell("^6IP: " + target.GetIP());
+					player.Tell('^6GUID: ' + target.GetGUID().substring(0, 12));
 
 					var geoData = target.GetGeoData();
 					if(geoData.status === 'fail')
@@ -83,6 +84,42 @@ var Commands = {
 		{
 			player.Tell("^1Usage: !kick [id / partial name] [reason]");
 			player.Tell("^1-> Kicks the player and shows the reason to him when kicked.");
+		}
+		
+		// Argv includes the actual command too
+		var argc = argv.length - 1;
+
+		if(argc < 2)
+		{
+			PrintUsage();
+			return;
+		}
+		
+		arg1 = argv[1].trim();
+		arg2 = argv[2].trim();
+		
+		// Arg guard
+		if(arg1 === "" || arg2 === "")
+		{
+			PrintUsage();
+			return;
+		}
+		
+		var target = wonderland.FindPlayer(arg1, player);
+
+		if(target !== null)
+		{
+			wonderland.BroadcastChat("^5" + target.GetName() + " ^5was kicked, reason: " + arg2);
+			target.Kick(arg2);
+		}
+	},
+
+	Name: function(player, argv, wonderland)
+	{
+		var PrintUsage = function()
+		{
+			player.Tell("^1Usage: !name [id / partial name] [new name]");
+			player.Tell("^1-> Renames a player.");
 		}
 		
 		// Argv includes the actual command too
@@ -401,6 +438,16 @@ var Commands = {
 				}
 			}
 		}
+	},
+
+
+/***********************************************\
+|* ALL PLAYER COMMANDS
+\***********************************************/
+
+	Version: function(player, argv, wonderland)
+	{
+		player.Tell(Utils.color.lightblue + 'Current running Alice ' + wonderland._version);
 	}
 
 }
