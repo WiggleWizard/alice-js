@@ -187,61 +187,64 @@ var Commands = {
 
 	Warn: function(player, argv, wonderland)
 	{
+		var PrintUsage = function()
+		{
+			player.Tell("^1Usage: !warn/w [id / partial name] [reason]");
+			player.Tell("^1-> Warns the player with a reason, player is kicked/tempbanned/banned after x amount of warnings.");
+		}
+
 		// Argv includes the actual command too
 		var argc = argv.length - 1;
 
 		if(argc < 2)
 		{
-			player.Tell("^1Usage: !warn/w [id / partial name] [reason]");
-			player.Tell("^1-> Warns the player with a reason, player is kicked/tempbanned/banned after x amount of warnings.");
+			PrintUsage();
+			return;
 		}
-		else
-		{
-			arg1   = argv[1].trim();
-			arg2   = argv[2].trim();
-			search = wonderland.FindPlayers(arg1);
 
-			if(search != null)
+		arg1 = argv[1].trim();
+		arg2 = argv[2].trim();
+		
+		// Arg guard
+		if(arg1 === "" || arg2 === "")
+		{
+			PrintUsage();
+			return;
+		}
+
+		var target = wonderland.FindPlayer(arg1, player);
+		
+		if(target !== null)
+		{
+			// Static vars for now, will make them dynamic later
+			var warnsTillKick = 3;
+			var warnsTillTBan = 6;
+			var warnsTillPBan = 9;
+
+			// Get the player's warnings and react according to how many he has
+			target.Warn(player, arg2, 30, function(warnCount, lastWarnTime)
 			{
-				if(search.length > 1)
-					player.Tell("^1Multiple players found with that name, try refine your search");
+				// Last warn time will be 0 if warn was issued 
+				if(lastWarnTime === 0)
+				{
+					wonderland.BroadcastChat(target.GetName() + " was warned for: " + arg2);
+
+					if(warnCount === 3)
+					{
+						target.Kick("Too many warnings");
+					}
+					else if(warnCount === warnsTillTBan)
+					{}
+					else if(warnCount === warnsTillPBan)
+					{
+						target.Ban(player, "Too many warnings");
+					}
+				}
 				else
 				{
-					// Static vars for now, will make them dynamic later
-					var warnsTillKick = 3;
-					var warnsTillTBan = 6;
-					var warnsTillPBan = 9;
-
-					// Get the player's warnings and react according to how many he has
-					search[0].Warn(player, arg2, 30, function(warnCount, lastWarnTime)
-					{
-						// Last warn time will be 0 if warn was issued 
-						if(lastWarnTime === 0)
-						{
-							wonderland.BroadcastChat(search[0].GetName() + " was warned for: " + arg2);
-
-							if(warnCount === 3)
-							{
-								search[0].Kick("Too many warnings");
-							}
-							else if(warnCount === warnsTillTBan)
-							{}
-							else if(warnCount === warnsTillPBan)
-							{
-								player.Ban(player, "Too many warnings");
-							}
-						}
-						else
-						{
-							player.Tell("You cannot warn this player for another " + lastWarnTime + " seconds");
-						}
-					});
+					player.Tell("^3You cannot warn this player for another " + lastWarnTime + " seconds");
 				}
-			}
-			else
-			{
-				player.Tell("^1No players found in the search, try using an ID or different your search terms");
-			}
+			});
 		}
 	},
 

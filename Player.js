@@ -390,6 +390,7 @@ Player.prototype = {
 					ORDER BY id DESC';
 		this._dbConn.query(sql, [this.GetName()], function(err, results)
 		{
+			console.log();
 			if(results.length > 0)
 				callback(results.length, results[0].datetime);
 			else

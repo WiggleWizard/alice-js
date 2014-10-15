@@ -174,11 +174,11 @@ Wonderland.prototype = {
 	 */
 	FindPlayer: function(needle, player)
 	{
-		var playerArray = FindPlayers(needle);
+		var playerArray = this.FindPlayers(needle);
 		
 		if(playerArray == null)
 		{
-			player.Tell("^1No players found in the search, try using an ID or different your search terms");
+			player.Tell("^1No players found in the search, try using different search terms");
 			return null;
 		}
 		
@@ -191,7 +191,7 @@ Wonderland.prototype = {
 		
 		// Only 1 player was found
 		return playerArray[0];
-	}
+	},
 	
 	/* ============ VOID FUNCTIONS
 	\* ========================================== */
