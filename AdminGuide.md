@@ -17,7 +17,7 @@ All parameters are positionally dependent unless stated otherwise.
 #### `[<id/partial name>]`
 Takes a slot ID or part of a player's name that is currently connected to the server. When using a partial name, generally names are case in-sensitive. If your search is too wide (aka you have entered a single letter into the search other than a slot ID) then Alice will tell you to narrow your search parameter.
 
-ID usually takes precedence above partial names, for example if you had a player on the server with the name '6' and you attempted to issue `!ban 6 Wallhack` this will ban the player on slot ID 6 **not** the player with the name '6'. To ban this player, one might issue `!p [page]
+ID usually takes precedence above partial names, for example if you had a player on the server with the name '6' and you attempted to issue `!ban 6 Wallhack` this will ban the player on slot ID 6 **not** the player with the name '6'. To ban this player, one might issue `!p [page]` and search for the player's slot ID and ban him on his slot ID.
 
 So be careful when issueing potentially dangerous or destructive commands with parameters that take `[<id/partial name>]`.
 
