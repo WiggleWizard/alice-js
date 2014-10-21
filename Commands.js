@@ -167,34 +167,44 @@ var Commands = {
 
 	Ban: function(player, argv, wonderland)
 	{
+		var PrintUsage = function()
+		{
+			player.Tell("^1Usage: !ban [id / partial name] [reason]");
+			player.Tell("^1-> Bans the player and shows the reason to him when removed from the server.");
+		}
+
 		// Argv includes the actual command too
 		var argc = argv.length - 1;
 
 		if(argc < 2)
 		{
-			player.Tell("^1Usage: !ban [id / partial name] [reason]");
-			player.Tell("^1-> Bans the player and shows the reason to him when removed from the server.");
+			PrintUsage();
+			return;
 		}
-		else
-		{
-			arg1 = argv[1].trim();
-			arg2 = argv[2].trim();
-			search = wonderland.FindPlayers(arg1);
 
-			if(search != null)
+		arg1 = argv[1].trim();
+		arg2 = argv[2].trim();
+
+		// Arg guard
+		if(arg1 === "" || arg2 === "")
+		{
+			PrintUsage();
+			return;
+		}
+		
+		var target = wonderland.FindPlayer(arg1, player);
+
+		if(target !== null)
+		{
+			// Rank guard
+			if(target.GetSigilGroupRank() >= player.GetSigilGroupRank())
 			{
-				if(search.length > 1)
-					player.Tell("^1Multiple players found with that name, try refine your search");
-				else
-				{
-					wonderland.BroadcastChat("^5" + search[0].GetName() + " ^1was banned, reason: " + arg2);
-					search[0].Ban(player, arg2);
-				}
+				player.Tell("^1You cannot perma ban " + target.GetName() + ", they are a higher rank than you.");
+				return;
 			}
-			else
-			{
-				player.Tell("^1No players found in the search, try using an ID or different your search terms");
-			}
+
+			wonderland.BroadcastChat("^5" + search[0].GetName() + " ^1was banned, reason: " + arg2);
+			search[0].Ban(player, arg2);
 		}
 	},
 
