@@ -58,7 +58,7 @@ var Commands = {
 				if(target !== null)
 				{
 					if(target.IsSignedIntoSigil())
-						player.Tell('^6! ' + target.GetSigilUsername() + ' [' + target.GetSigilGroupName + ']');
+						player.Tell('^6! ' + target.GetSigilUsername() + ' [' + target.GetSigilGroupName() + ']');
 
 					player.Tell("^6Slot ID: " + target.GetSlotID());
 					player.Tell("^6Ingame Name: " + target.GetName());
