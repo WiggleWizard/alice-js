@@ -197,6 +197,7 @@ Player.prototype = {
 	{
 		// Set player object name
 		this._name = name;
+		this._cleanName = Utils.StripColor(name);
 
 		// Set a name change function to Wonderland
 		var argv = [this._slotID, this._name];
@@ -510,7 +511,7 @@ Player.prototype = {
 	GetCleanName: function()
 	{
 		return this._cleanName;
-	}
+	},
 	GetSlotID: function()
 	{
 		return this._slotID;

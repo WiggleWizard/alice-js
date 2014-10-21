@@ -377,9 +377,17 @@ var Commands = {
 			for(var i = 0; i < s; i++)
 			{
 				if(playerArray[i].IsConnected())
-					player.Tell("^5[" + playerArray[i].GetSlotID() + "] ^7" +
+				{
+					// Select color depending on if the player is logged on or not
+					var color = '^7';
+
+					if(playerArray[i].IsSignedIntoSigil())
+						color = '^2';
+					
+					player.Tell("^5[" + playerArray[i].GetSlotID() + "] " + color
 								playerArray[i].GetName() +
 								" ^5[" + playerArray[i].GetIP() + "]");
+				}
 			}
 		}
 
