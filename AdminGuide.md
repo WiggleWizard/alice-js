@@ -1,8 +1,10 @@
 # Alice docs for Admins/Moderators
 This document serves as a point of reference for ingame Administrators/Moderators of Alice based servers.
 
+
 ## General Usage
 Alice was designed to make moderating servers easy and intuitive, as such a lot of the commands and functionality come across as simple but require a little getting used to. Using most commands that require parameters without the parameters will tell the user how it's meant to be used.
+
 
 ## Command Parameters
 Parameters are the inputs that the commands take, they directly influence how the command executes and what it does.
@@ -24,6 +26,16 @@ So be careful when issueing potentially dangerous or destructive commands with p
 ##### `[<partial name>]`
 Only does a partial name search, does not check ID. This particular parameter restriction is applied to public/fun commands to avoid players being able to exploit the slot ID search functionality to determine which player is on which slot ID.
 
+##### `[<time macro>]`
+Time Macros decribe a length of time in a single macro. It can be in weeks, days, hours or minutes or a combination of the 4. These time segments in a time macro are represented by `w`, `d`, `h`, `m` respectively.
+
+Here's some examples:
+```
+5d1m (5 days and 1 minute)
+1w9h (1 week and 9 days)
+2w4d48m (2 weeks, 4 days and 48 minutes)
+```
+
 
 ## Commands
 
@@ -34,6 +46,9 @@ Checks the permissions of a player (only if the moderator that issues this comma
 #### Admin Commands
 ##### `!b/ban <id/partial name> <reason>`
 Bans a player based on ID or partial name, with a reason. Reasons can contain spaces however the id/partial name cannot contain any sort of spaces at all.
+
+##### `!tb/tempban <id/partial name> <time macro> <reason>`
+Temporarily bans a player for `<time macro>` amount of time. Only `<reason>` can contain spaces. Refer to the `[<time macro>]` description above for an explaination on time macros.
 
 #### Fun Commands
 ##### `!pizza [partial name]`
