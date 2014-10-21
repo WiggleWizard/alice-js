@@ -57,6 +57,9 @@ var Commands = {
 
 				if(target !== null)
 				{
+					if(target.IsSignedIntoSigil())
+						player.Tell('^6Player signed in as ' + target.GetSigilUsername());
+
 					player.Tell("^6Slot ID: " + target.GetSlotID());
 					player.Tell("^6Ingame Name: " + target.GetName());
 					player.Tell("^6IP: " + target.GetIP());
@@ -109,6 +112,12 @@ var Commands = {
 
 		if(target !== null)
 		{
+			if(target.GetSigilGroupRank() >= player.GetSigilGroupRank())
+			{
+				player.Tell("^1You cannot kick " + target.GetName() + ", they are a higher rank than you.");
+				return;
+			}
+
 			wonderland.BroadcastChat("^5" + target.GetName() + " ^5was kicked, reason: " + arg2);
 			target.Kick(arg2);
 		}
@@ -145,6 +154,12 @@ var Commands = {
 
 		if(target !== null)
 		{
+			if(target.GetSigilGroupRank() >= player.GetSigilGroupRank())
+			{
+				player.Tell("^1You cannot change " + target.GetName() + "'s name, they are a higher rank than you.");
+				return;
+			}
+
 			wonderland.BroadcastChat("^5" + target.GetName() + " ^5was kicked, reason: " + arg2);
 			target.Kick(arg2);
 		}
@@ -215,6 +230,12 @@ var Commands = {
 
 			if(target !== null)
 			{
+				if(target.GetSigilGroupRank() >= player.GetSigilGroupRank())
+				{
+					player.Tell("^1You cannot temp ban " + target.GetName() + ", they are a higher rank than you.");
+					return;
+				}
+
 				var unbanMoment = Utils.AddMacroToMoment(Moment(), arg2);
 				wonderland.BroadcastChat("^5" + target.GetName() + " ^1was temp banned for " + unbanMoment.fromNow(true) + ", reason: " + arg3);
 				target.TempBan(player, arg2, arg3);
@@ -257,6 +278,12 @@ var Commands = {
 			var warnsTillKick = 3;
 			var warnsTillTBan = 6;
 			var warnsTillPBan = 9;
+
+			if(target.GetSigilGroupRank() >= player.GetSigilGroupRank())
+			{
+				player.Tell("^1You cannot warn " + target.GetName() + ", they are a higher rank than you.");
+				return;
+			}
 
 			// Get the player's warnings and react according to how many he has
 			target.Warn(player, arg2, 30, function(warnCount, lastWarnTime)
@@ -392,6 +419,12 @@ var Commands = {
 		
 		if(target !== null)
 		{
+			if(target.GetSigilGroupRank() >= player.GetSigilGroupRank())
+			{
+				player.Tell("^1You cannot mute " + target.GetName() + ", they are a higher rank than you.");
+				return;
+			}
+
 			target.Mute();
 			target.Tell("^1You were muted");
 			player.Tell("^2" + target.GetName() + " was muted");
