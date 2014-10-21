@@ -52,11 +52,12 @@ Player.prototype = {
 
 		this._connected = true;
 
-		this._slotID  = slotID;
-		this._ipAddr  = ipAddress;
-		this._guid    = guid;
-		this._name    = name;
-		this._geoData = geoData;
+		this._slotID    = slotID;
+		this._ipAddr    = ipAddress;
+		this._guid      = guid;
+		this._name      = name;
+		this._cleanName = Utils.StripColor(name);
+		this._geoData   = geoData;
 
 		// Sigil related stuff
 		this._isSignedIntoSigil = false;
@@ -506,6 +507,10 @@ Player.prototype = {
 	{
 		return this._name;
 	},
+	GetCleanName: function()
+	{
+		return this._cleanName;
+	}
 	GetSlotID: function()
 	{
 		return this._slotID;
