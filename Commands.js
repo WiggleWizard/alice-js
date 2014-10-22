@@ -384,7 +384,7 @@ var Commands = {
 					if(playerArray[i].IsSignedIntoSigil())
 						color = '^2';
 					
-					player.Tell("^5[" + playerArray[i].GetSlotID() + "] " + color
+					player.Tell("^5[" + playerArray[i].GetSlotID() + "] " + color +
 								playerArray[i].GetName() +
 								" ^5[" + playerArray[i].GetIP() + "]");
 				}
