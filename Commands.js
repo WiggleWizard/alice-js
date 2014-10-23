@@ -21,10 +21,10 @@ var Commands = {
 			{
 				if(player.IsSignedIntoSigil())
 				{
-					player.Tell("^5You are logged in as ^2" + player.GetSigilUsername());
-					player.Tell("^5Slot ID: ^2" + player.GetSlotID());
-					player.Tell("^5Group: ^2" + player.GetSigilGroupName());
-					player.Tell("^5Current IP: ^2" + player.GetIP());
+					player.Tell("^2You are logged in as ^5" + player.GetSigilUsername());
+					player.Tell("^2Slot ID: ^5" + player.GetSlotID());
+					player.Tell("^2Group: ^5" + player.GetSigilGroupName());
+					player.Tell("^2Current IP: ^5" + player.GetIP());
 				}
 				else
 				{
@@ -58,19 +58,19 @@ var Commands = {
 				if(target !== null)
 				{
 					if(target.IsSignedIntoSigil())
-						player.Tell('^6! ' + target.GetSigilUsername() + ' [' + target.GetSigilGroupName() + ']');
+						player.Tell('^2Logged in as ' + target.GetSigilUsername() + ' [' + target.GetSigilGroupName() + ']');
 
-					player.Tell("^6Slot ID: " + target.GetSlotID());
-					player.Tell("^6Ingame Name: " + target.GetCleanName());
-					player.Tell("^6IP: " + target.GetIP());
-					player.Tell('^6GUID: ' + target.GetGUID().substring(0, 12));
+					player.Tell("^2Slot ID: ^3" + target.GetSlotID());
+					player.Tell("^2Ingame Name: ^3" + target.GetCleanName());
+					player.Tell("^2IP: ^3" + target.GetIP());
+					player.Tell('^2GUID: ^3' + target.GetGUID().substring(0, 12));
 
 					var geoData = target.GetGeoData();
 					if(geoData.status === 'fail')
 						player.Tell("^1No geo data available");
 					else
 					{
-						player.Tell("^6Country: " + geoData.country + " [" + geoData.countryCode + "]");
+						player.Tell("^2Country: ^3" + geoData.country + " [" + geoData.countryCode + "]");
 					}
 				}
 			}
@@ -308,7 +308,9 @@ var Commands = {
 						target.Kick("Too many warnings");
 					}
 					else if(warnCount === warnsTillTBan)
-					{}
+					{
+						target.TempBan(player, '2h', 'Too many warnings');
+					}
 					else if(warnCount === warnsTillPBan)
 					{
 						target.Ban(player, "Too many warnings");

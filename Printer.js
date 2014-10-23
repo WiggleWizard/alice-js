@@ -23,9 +23,9 @@ var Printer = {
 					color = '^2';
 				
 				player.Tell(
-					"^5[" + playerArray[i].GetSlotID() + "] " + color +
+					"^2" + playerArray[i].GetSlotID() + " ^7| " + color +
 					playerArray[i].GetCleanName() +
-					" ^5[" + playerArray[i].GetIP() + "]"
+					" ^7| ^2" + playerArray[i].GetIP()
 				);
 			}
 		}
