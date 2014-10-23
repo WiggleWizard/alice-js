@@ -16,11 +16,12 @@ function Player(wonderland)
 	this._connected = false;
 
 	// General (Every player should have this crap)
-	this._slotID  = null;
-	this._ipAddr  = "";
-	this._guid    = "";
-	this._name    = "";
-	this._geoData = {};
+	this._slotID    = null;
+	this._ipAddr    = "";
+	this._guid      = "";
+	this._name      = "";
+	this._cleanName = "";
+	this._geoData   = {};
 
 	// Sigil related stuff
 	this._isSignedIntoSigil = false;

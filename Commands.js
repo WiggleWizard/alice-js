@@ -61,7 +61,7 @@ var Commands = {
 						player.Tell('^6! ' + target.GetSigilUsername() + ' [' + target.GetSigilGroupName() + ']');
 
 					player.Tell("^6Slot ID: " + target.GetSlotID());
-					player.Tell("^6Ingame Name: " + target.GetName());
+					player.Tell("^6Ingame Name: " + target.GetCleanName());
 					player.Tell("^6IP: " + target.GetIP());
 					player.Tell('^6GUID: ' + target.GetGUID().substring(0, 12));
 
@@ -114,11 +114,11 @@ var Commands = {
 		{
 			if(target.GetSigilGroupRank() >= player.GetSigilGroupRank())
 			{
-				player.Tell("^1You cannot kick " + target.GetName() + ", they are a higher rank than you.");
+				player.Tell("^1You cannot kick " + target.GetCleanName() + ", they are a higher rank than you.");
 				return;
 			}
 
-			wonderland.BroadcastChat("^5" + target.GetName() + " ^5was kicked, reason: " + arg2);
+			wonderland.BroadcastChat("^5" + target.GetCleanName() + " ^5was kicked, reason: " + arg2);
 			target.Kick(arg2);
 		}
 	},
@@ -156,11 +156,11 @@ var Commands = {
 		{
 			if(target.GetSigilGroupRank() >= player.GetSigilGroupRank())
 			{
-				player.Tell("^1You cannot change " + target.GetName() + "'s name, they are a higher rank than you.");
+				player.Tell("^1You cannot change " + target.GetCleanName() + "'s name, they are a higher rank than you.");
 				return;
 			}
 
-			wonderland.BroadcastChat("^5" + target.GetName() + " ^5was kicked, reason: " + arg2);
+			wonderland.BroadcastChat("^5" + target.GetCleanName() + " ^5was kicked, reason: " + arg2);
 			target.Kick(arg2);
 		}
 	},
@@ -199,11 +199,11 @@ var Commands = {
 			// Rank guard
 			if(target.GetSigilGroupRank() >= player.GetSigilGroupRank())
 			{
-				player.Tell("^1You cannot perma ban " + target.GetName() + ", they are a higher rank than you.");
+				player.Tell("^1You cannot perma ban " + target.GetCleanName() + ", they are a higher rank than you.");
 				return;
 			}
 
-			wonderland.BroadcastChat("^5" + search[0].GetName() + " ^1was banned, reason: " + arg2);
+			wonderland.BroadcastChat("^5" + search[0].GetCleanName() + " ^1was banned, reason: " + arg2);
 			search[0].Ban(player, arg2);
 		}
 	},
@@ -242,12 +242,12 @@ var Commands = {
 			{
 				if(target.GetSigilGroupRank() >= player.GetSigilGroupRank())
 				{
-					player.Tell("^1You cannot temp ban " + target.GetName() + ", they are a higher rank than you.");
+					player.Tell("^1You cannot temp ban " + target.GetCleanName() + ", they are a higher rank than you.");
 					return;
 				}
 
 				var unbanMoment = Utils.AddMacroToMoment(Moment(), arg2);
-				wonderland.BroadcastChat("^5" + target.GetName() + " ^1was temp banned for " + unbanMoment.fromNow(true) + ", reason: " + arg3);
+				wonderland.BroadcastChat("^5" + target.GetCleanName() + " ^1was temp banned for " + unbanMoment.fromNow(true) + ", reason: " + arg3);
 				target.TempBan(player, arg2, arg3);
 			}
 		}
@@ -291,7 +291,7 @@ var Commands = {
 
 			if(target.GetSigilGroupRank() >= player.GetSigilGroupRank())
 			{
-				player.Tell("^1You cannot warn " + target.GetName() + ", they are a higher rank than you.");
+				player.Tell("^1You cannot warn " + target.GetCleanName() + ", they are a higher rank than you.");
 				return;
 			}
 
@@ -301,7 +301,7 @@ var Commands = {
 				// Last warn time will be 0 if warn was issued 
 				if(lastWarnTime === 0)
 				{
-					wonderland.BroadcastChat(target.GetName() + " was warned for: " + arg2);
+					wonderland.BroadcastChat(target.GetCleanName() + " was warned for: " + arg2);
 
 					if(warnCount === 3)
 					{
@@ -385,7 +385,7 @@ var Commands = {
 						color = '^2';
 					
 					player.Tell("^5[" + playerArray[i].GetSlotID() + "] " + color +
-								playerArray[i].GetName() +
+								playerArray[i].GetCleanName() +
 								" ^5[" + playerArray[i].GetIP() + "]");
 				}
 			}
@@ -439,13 +439,52 @@ var Commands = {
 		{
 			if(target.GetSigilGroupRank() >= player.GetSigilGroupRank())
 			{
-				player.Tell("^1You cannot mute " + target.GetName() + ", they are a higher rank than you.");
+				player.Tell("^1You cannot mute " + target.GetCleanName() + ", they are a higher rank than you.");
 				return;
 			}
 
 			target.Mute();
 			target.Tell("^1You were muted");
-			player.Tell("^2" + target.GetName() + " was muted");
+			player.Tell("^2" + target.GetCleanName() + " was muted");
+		}
+	},
+
+	UnmutePlayer: function(player, argv, wonderland)
+	{
+		var PrintUsage = function()
+		{
+			player.Tell("^1Usage: !unmute [id / partial name]");
+			player.Tell("^1-> Unmutes a muted player.");
+		}
+		
+		// Argv includes the actual command too
+		var argc = argv.length - 1;
+
+		if(argc < 1)
+		{
+			PrintUsage();
+			return;
+		}
+		
+		arg1 = argv[1].trim();
+		
+		// Arg guard
+		if(arg1 === "")
+		{
+			PrintUsage();
+			return;
+		}
+		
+		var target = wonderland.FindPlayer(arg1, player);
+		
+		if(target !== null)
+		{
+			if(target.IsMuted())
+			{
+				target.Unmute();
+				target.Tell("^1You were unmuted");
+				player.Tell("^2" + target.GetCleanName() + " was unmuted");
+			}
 		}
 	},
 
@@ -465,7 +504,7 @@ var Commands = {
 
 		if(argc != 2)
 		{
-			wonderland.BroadcastChat(player.GetName() + " has started eating a pizza");
+			wonderland.BroadcastChat(player.GetCleanName() + " has started eating a pizza");
 		}
 		else
 		{
@@ -485,7 +524,7 @@ var Commands = {
 					if(search.length > 1)
 						player.Tell("^1Multiple players found with that name, try refine your search");
 					else
-						wonderland.BroadcastChat(player.GetName() + " sent a pizza to " + search[0].GetName());
+						wonderland.BroadcastChat(player.GetCleanName() + " sent a pizza to " + search[0].GetCleanName());
 				}
 			}
 		}
