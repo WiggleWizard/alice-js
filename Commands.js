@@ -485,6 +485,10 @@ var Commands = {
 				target.Tell("^1You were unmuted");
 				player.Tell("^2" + target.GetCleanName() + " was unmuted");
 			}
+			else
+			{
+				player.Tell('^1Player is not muted');
+			}
 		}
 	},
 
