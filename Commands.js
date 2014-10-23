@@ -370,40 +370,54 @@ var Commands = {
 
 	PlayerList: function(player, argv, wonderland)
 	{
-		// Lists the array of users it's handed
-		var ListUsers = function(playerArray)
-		{
-			var s = playerArray.length;
-			for(var i = 0; i < s; i++)
-			{
-				if(playerArray[i].IsConnected())
-				{
-					// Select color depending on if the player is logged on or not
-					var color = '^7';
-
-					if(playerArray[i].IsSignedIntoSigil())
-						color = '^2';
-					
-					player.Tell("^5[" + playerArray[i].GetSlotID() + "] " + color +
-								playerArray[i].GetCleanName() +
-								" ^5[" + playerArray[i].GetIP() + "]");
-				}
-			}
-		}
-
 		// Argv includes the actual command too
 		var argc = argv.length - 1;
 
 		// If no params then print every player
 		if(argc === 0)
 		{
-			ListUsers(wonderland._players);
+			Printer.ListPlayersFor(player, wonderland._players);
 			player.Tell("^3To view the entire list use Shift + `");
 		}
 		else if(argc === 1)
 		{
+			var playersPerPage = 5;
+
 			// Page arg
+			var page = Utils.ToInt(argv[1]);
+
+			if(page === null)
+			{
+				player.Tell('^1A number is required for page');
+				return;
+			}
+
+			// Gotta collate all online players into one array
+			var onlinePlayers = new Array();
+			var s = wonderland._players.length;
+			for(var i = 0; i < s; i++)
+			{
+				if(wonderland._players[i].IsConnected())
+					onlinePlayers.push(wonderland._players[i]);
+			}
+
+			// Now we figure out what range to begin printing from
+			var rangeBegin = (page - 1) * playersPerPage;
 			
+			// Clamp lower range
+			if(rangeBegin < 0)
+				rangeBegin = 0;
+
+			// Construct a small array of all players to be listed
+			var playerList = new Array();
+			for(var i = rangeBegin; i < playersPerPage; i++)
+			{
+				if(i >= onlinePlayers.length) break;
+
+				playerList.push(onlinePlayers[i]);
+			}
+
+			Printer.ListPlayersFor(player, playerList);
 		}
 	},
 	
