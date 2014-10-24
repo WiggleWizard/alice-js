@@ -99,7 +99,7 @@ var Utils = {
 	 */
 	StripColor: function(string)
 	{
-		return string.replace(/\^\d/, '');
+		return string.replace(/\^\d/g, '');
 	},
 
 	AddMacroToMoment: function(moment, macro)
