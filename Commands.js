@@ -508,6 +508,35 @@ var Commands = {
 		}
 	},
 
+	Map: function(player, argv, wonderland)
+	{
+		var PrintUsage = function()
+		{
+			player.Tell("^1Usage: !map [map name]");
+			player.Tell("^1-> Changes the map. Use !maps or !gametypes to see a list of maps or gametypes.");
+		}
+		
+		// Argv includes the actual command too
+		var argc = argv.length - 1;
+
+		if(argc < 1)
+		{
+			PrintUsage();
+			return;
+		}
+		
+		arg1 = argv[1].trim();
+		
+		// Arg guard
+		if(arg1 === "")
+		{
+			PrintUsage();
+			return;
+		}
+
+		wonderland.ExecuteCommand('map mp_killhouse');
+	},
+
 
 /***********************************************\
 |* FUN COMMANDS

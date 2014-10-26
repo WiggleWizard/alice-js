@@ -241,6 +241,16 @@ Wonderland.prototype = {
 		return this._maxClients;
 	},
 
+	ExecuteCommand: function(command)
+	{
+		var argv = [command];
+		var argt = [3];
+		
+		var voidFunc = new VoidFunction("EXECCMD", argv, argt);
+
+		this._SendVoidFunction(voidFunc);
+	},
+
 
 /***********************************************\
 |* PRIVATE
