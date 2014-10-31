@@ -187,6 +187,19 @@ var Utils = {
 	},
 
 
+	GetGametypeMachineName: function(gametype)
+	{
+		gametype = gametype.toLowerCase();
+
+		var i, len;
+		for(i = 0, len = this.gametypesFriendlyNames.length ; i < len ; i++)
+		{
+			if(this.gametypesFriendlyNames[i].toLowerCase() === gametype)
+				return this.gametypesMachineNames[i];
+		}
+
+		return null;
+	},
 
 	/*==============================================================================================*\
 	|* Variables
@@ -221,11 +234,11 @@ var Utils = {
 		'Bloc',
 		'Bog',
 		'Broadcast',
-		'China Town',
+		'Chinatown',
 		'Citystreets',
 		'Countdown',
 		'Crash',
-		'Winter Crash',
+		'Wintercrash',
 		'Creek',
 		'Crossfire',
 		'Downpour',
@@ -247,12 +260,12 @@ var Utils = {
 		'dom'
 	],
 	gametypesFriendlyNames: [
-		'Team Deathmatch',
-		'Search and Destroy',
-		'Deathmatch',
-		'Sabotage',
-		'Headquarters',
-		'Domination'
+		'TDM',
+		'SnD',
+		'DM',
+		'Sabo',
+		'HQ',
+		'Dom'
 	],
 	color: {
 		'red':       '^1',

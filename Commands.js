@@ -512,7 +512,7 @@ var Commands = {
 	{
 		var PrintUsage = function()
 		{
-			player.Tell("^1Usage: !map [map name]");
+			player.Tell("^1Usage: !map [map name] <gametype>");
 			player.Tell("^1-> Changes the map. Use !maps or !gametypes to see a list of maps or gametypes.");
 		}
 		
@@ -525,7 +525,11 @@ var Commands = {
 			return;
 		}
 		
-		arg1 = argv[1].trim();
+		var arg1 = argv[1].trim();
+		var arg2 = '';
+
+		if(argc > 1)
+			arg2 = argv[2].trim(); // Optional
 		
 		// Arg guard
 		if(arg1 === "")
@@ -534,7 +538,76 @@ var Commands = {
 			return;
 		}
 
-		wonderland.ExecuteCommand('map mp_killhouse');
+		// We need to set the gametype before we change the map
+		if(arg2 !== '')
+		{
+			var gametypeName = Utils.GetGametypeMachineName(arg2);
+
+			if(gametypeName === null)
+			{
+				player.Tell('^1No such gametype was found, try !gametypes for a list of usable gametypes.');
+				return;
+			}
+			else
+			{
+				wonderland.ExecuteCommand('g_gametype ' + gametypeName);
+			}
+		}
+
+		// Pick out the machine name from the human name
+		var machineMapName = Utils.GetMapMachineName(arg1);
+
+		if(machineMapName === null)
+			player.Tell('^1Map not found, try !maps for a list of usable maps to play.');
+		else
+		{
+			wonderland.ExecuteCommand('map ' + machineMapName);
+		}
+	},
+
+	Maps: function(player, argv, wonderland)
+	{
+		player.Tell('^2Available maps:');
+
+		// Compile a list of maps into one
+		var out = "^2- ";
+		var s   = Utils.mapFriendlyNames.length;
+		for(var i = 0; i < s;)
+		{
+			var pg = i + 5;
+			if(pg > s) pg = s; // Clampy clamp
+			for(var j = i; j < pg; j++)
+			{
+				out += Utils.mapFriendlyNames[i] + ', ';
+				i++;
+			}
+			
+			player.Tell(out);
+			out = '^2';
+		}
+	},
+
+	Gametypes: function(player, argv, wonderland)
+	{
+		player.Tell('^2Available gametypes:');
+
+		// Compile a list of maps into one
+		var out = "^2- ";
+		var s   = Utils.gametypesFriendlyNames.length;
+		for(var i = 0; i < s;)
+		{
+			var pg = i + 5;
+			if(pg > s) pg = s;
+			for(var j = i; j < pg; j++)
+			{
+				out += Utils.gametypesFriendlyNames[i] + ', ';
+				i++;
+			}
+			
+			player.Tell(out);
+			out = '^2';
+		}
+
 	},
 
 

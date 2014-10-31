@@ -243,12 +243,20 @@ Wonderland.prototype = {
 
 	ExecuteCommand: function(command)
 	{
-		var argv = [command];
-		var argt = [3];
-		
-		var voidFunc = new VoidFunction("EXECCMD", argv, argt);
+		var self = this;
 
-		this._SendVoidFunction(voidFunc);
+		// CoD4 doesn't like it when you execute too many commands in quick succession,
+		// so here's a delay to the command execution.
+		setTimeout(function(command){
+			return(function(){
+				var argv = [command];
+				var argt = [3];
+				
+				var voidFunc = new VoidFunction("EXECCMD", argv, argt);
+
+				self._SendVoidFunction(voidFunc);
+			});
+		}(command), 10);
 	},
 
 
@@ -505,6 +513,7 @@ Wonderland.prototype = {
 		{
 			// Parse the packet into an Event object
 			var e = EventParser.Parse(buffer);
+			console.log('[DBG] Recieved Event: ' + e.GetName());
 			
 			// Determine how to execute the event within Alice
 			if(e.GetName() === "INIT")

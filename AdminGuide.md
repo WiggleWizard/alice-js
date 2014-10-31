@@ -50,6 +50,9 @@ Bans a player based on ID or partial name, with a reason. Reasons can contain sp
 ##### `!tb/tempban <id/partial name> <time macro> <reason>`
 Temporarily bans a player for `<time macro>` amount of time. Only `<reason>` can contain spaces. Refer to the `[<time macro>]` description above for an explaination on time macros.
 
+##### `!map <map name> [gametype]`
+Changes map to `<map name>`. Optionally Gametype can be specified. Use `!maps` or `!gametypes` to see what maps or gametypes are available.
+
 #### Fun Commands
 ##### `!pizza [partial name]`
 When no partial name is supplied, the player will eat a pizza. If a player name is specified it will send a pizza to the specified player.
