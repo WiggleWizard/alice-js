@@ -656,6 +656,39 @@ var Commands = {
 /***********************************************\
 |* ALL PLAYER COMMANDS
 \***********************************************/
+	
+	NextMap: function(player, argv, wonderland)
+	{
+		wonderland.GetMapRotationCurrent(function(mapRotationCurrent)
+		{
+			var mapRotCur = Utils.ParseMapRotationToArray(mapRotationCurrent);
+
+			if(mapRotCur[0] !== undefined)
+			{
+				var mapName  = Utils.GetMapFriendlyName(mapRotCur[0].map);
+				var gametype = Utils.GetGametypeFriendlyName(mapRotCur[0].gametype);
+
+				if(mapName == null)
+						mapName = mapRotCur[0].map;
+
+				player.Tell('^2The next map is: ^5' + mapName + '(' + gametype + ')');
+			}
+			else
+			{
+				wonderland.GetMapRotation(function(mapRotation)
+				{
+					var mapRot   = Utils.ParseMapRotationToArray(mapRotation);
+					var mapName  = Utils.GetMapFriendlyName(mapRot[0].map);
+					var gametype = Utils.GetGametypeFriendlyName(mapRot[0].gametype);
+					
+					if(mapName == null)
+						mapName = mapRot[0].map;
+
+					player.Tell('^2The next map is: ^5' + mapName + '(' + gametype + ')');
+				});
+			}
+		});
+	},
 
 	Version: function(player, argv, wonderland)
 	{

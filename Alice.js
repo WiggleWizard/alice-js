@@ -169,13 +169,13 @@ function Main()
 	bang.RegisterCommand("k",         "kick", 2, Commands.Kick);         // Alias for Kick
 	bang.RegisterCommand("ban",       "ban", 2, Commands.Ban);
 	bang.RegisterCommand("tban",      "tempban", 3, Commands.TempBan);
-	bang.RegisterCommand("b",         "ban", 2, Commands.Ban);            // Alias for Ban
+	bang.RegisterCommand("b",         "ban", 2, Commands.Ban);           // Alias for Ban
 	bang.RegisterCommand("warn",      "warn", 2, Commands.Warn);
 	bang.RegisterCommand("w",         "warn", 2, Commands.Warn);         // Alias for Warn
 	bang.RegisterCommand("geo",       "geo", 1, Commands.Geo);
 	bang.RegisterCommand("name",      "rename", 1, Commands.Name);
 	bang.RegisterCommand("plist",     "plist", 1, Commands.PlayerList);
-	bang.RegisterCommand("p",         "plist", 1, Commands.PlayerList); // Alias for PList
+	bang.RegisterCommand("p",         "plist", 1, Commands.PlayerList);  // Alias for PList
 	bang.RegisterCommand("mute",      "mute", 1, Commands.MutePlayer);
 	bang.RegisterCommand("map",       "map", 2, Commands.Map);
 	bang.RegisterCommand("maps",      "maps", 0, Commands.Maps);
@@ -186,6 +186,7 @@ function Main()
 	bang.RegisterCommand("pizza", null, 1, Commands.Pizza);
 
 	// All player commands
+	bang.RegisterCommand("nm", null, 0, Commands.NextMap);
 	bang.RegisterCommand("version", null, 0, Commands.Version);
 }
 

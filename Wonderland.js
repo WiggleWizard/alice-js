@@ -259,6 +259,24 @@ Wonderland.prototype = {
 		}(command), 10);
 	},
 
+	GetMapRotation: function(callback)
+	{
+		var returnFunc = new ReturnFunction(1, "GETMAPROTATION", [], [], function(mapRotation)
+		{
+			callback(mapRotation);
+		});
+		this._SendReturnFunction(returnFunc);
+	},
+
+	GetMapRotationCurrent: function(callback)
+	{
+		var returnFunc = new ReturnFunction(1, "GETMAPROTATIONCURRENT", [], [], function(mapRotation)
+		{
+			callback(mapRotation);
+		});
+		this._SendReturnFunction(returnFunc);
+	},
+
 
 /***********************************************\
 |* PRIVATE

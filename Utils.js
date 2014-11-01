@@ -173,6 +173,20 @@ var Utils = {
 		return null;
 	},
 
+	GetMapFriendlyName: function(mapName)
+	{
+		mapName = mapName.toLowerCase();
+
+		var i, len;
+		for(i = 0, len = this.mapMachineNames.length ; i < len ; i++)
+		{
+			if(this.mapMachineNames[i].toLowerCase() === mapName)
+				return this.mapFriendlyNames[i];
+		}
+
+		return null;
+	},
+
 	/**
 	 * Adds a (custom) map on to the map stacks, so getMapMachineName
 	 * can find them.
@@ -186,6 +200,39 @@ var Utils = {
 		this.mapFriendlyNames.push(friendlyName);
 	},
 
+	/**
+	 * Parses map rotation string into array.
+	 * 
+	 * @param {[type]} mapRotation [description]
+	 */
+	ParseMapRotationToArray: function(mapRotation)
+	{
+		var out = [];
+		var lastGametype = 'dm'; // Default gametype for all maps if no gametypes are specified
+
+		var mapRot = mapRotation.split(' ');
+
+		var s = mapRot.length;
+		for(var i = 0; i < s; i++)
+		{
+			if(mapRot[i] === 'gametype')
+			{
+				lastGametype = mapRot[i + 1];
+			}
+			else if(mapRot[i] === 'map')
+			{
+				var entry = {
+					map: mapRot[i + 1],
+					gametype: lastGametype
+				};
+
+				out.push(entry);
+			}
+		}
+
+		return out;
+	},
+
 
 	GetGametypeMachineName: function(gametype)
 	{
@@ -196,6 +243,20 @@ var Utils = {
 		{
 			if(this.gametypesFriendlyNames[i].toLowerCase() === gametype)
 				return this.gametypesMachineNames[i];
+		}
+
+		return null;
+	},
+
+	GetGametypeFriendlyName: function(gametype)
+	{
+		gametype = gametype.toLowerCase();
+
+		var i, len;
+		for(i = 0, len = this.gametypesMachineNames.length ; i < len ; i++)
+		{
+			if(this.gametypesMachineNames[i].toLowerCase() === gametype)
+				return this.gametypesFriendlyNames[i];
 		}
 
 		return null;
