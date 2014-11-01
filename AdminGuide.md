@@ -50,6 +50,12 @@ Bans a player based on ID or partial name, with a reason. Reasons can contain sp
 ##### `!tb/tempban <id/partial name> <time macro> <reason>`
 Temporarily bans a player for `<time macro>` amount of time. Only `<reason>` can contain spaces. Refer to the `[<time macro>]` description above for an explaination on time macros.
 
+##### `!mute <id/partial name>`
+Mutes a player's chat until they either leave the server and rejoin or until an admin `!unmute`s them. The player is shown a message when muted and when attempting to say something in the chat. It will also warn them that they are muted once the command is issued.
+
+##### `!unmute <id/partial name>`
+Unmutes a player from mute. Command only works if the player is muted.
+
 ##### `!map <map name> [gametype]`
 Changes map to `<map name>`. Optionally Gametype can be specified. Use `!maps` or `!gametypes` to see what maps or gametypes are available.
 
