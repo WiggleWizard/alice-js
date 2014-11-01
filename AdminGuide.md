@@ -56,3 +56,7 @@ Changes map to `<map name>`. Optionally Gametype can be specified. Use `!maps` o
 #### Fun Commands
 ##### `!pizza [partial name]`
 When no partial name is supplied, the player will eat a pizza. If a player name is specified it will send a pizza to the specified player.
+
+#### General Commands
+##### `!nm`
+Displays the next map in the rotation.
