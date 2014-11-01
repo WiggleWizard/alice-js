@@ -177,6 +177,7 @@ function Main()
 	bang.RegisterCommand("plist",     "plist", 1, Commands.PlayerList);
 	bang.RegisterCommand("p",         "plist", 1, Commands.PlayerList);  // Alias for PList
 	bang.RegisterCommand("mute",      "mute", 1, Commands.MutePlayer);
+	bang.RegisterCommand("unmute",    "mute", 1, Commands.UnmutePlayer);
 	bang.RegisterCommand("map",       "map", 2, Commands.Map);
 	bang.RegisterCommand("maps",      "maps", 0, Commands.Maps);
 	bang.RegisterCommand("gametypes", "gametypes", 0, Commands.Gametypes);
