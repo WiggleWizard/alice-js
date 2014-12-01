@@ -561,7 +561,11 @@ var Commands = {
 			player.Tell('^1Map not found, try !maps for a list of usable maps to play.');
 		else
 		{
-			wonderland.ExecuteCommand('map ' + machineMapName);
+			// CoD4 doesn't like it when you execute too many commands in quick succession,
+			// so here's a delay to the command execution.
+			setTimeout(function(){
+				wonderland.ExecuteCommand('map ' + machineMapName);
+			}, 50);
 		}
 	},
 

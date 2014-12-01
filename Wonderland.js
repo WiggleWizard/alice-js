@@ -241,22 +241,21 @@ Wonderland.prototype = {
 		return this._maxClients;
 	},
 
+	/**
+	 * Executes a CoD4 command.
+	 * 
+	 * @param {[type]} command [description]
+	 */
 	ExecuteCommand: function(command)
 	{
 		var self = this;
 
-		// CoD4 doesn't like it when you execute too many commands in quick succession,
-		// so here's a delay to the command execution.
-		setTimeout(function(command){
-			return(function(){
-				var argv = [command];
-				var argt = [3];
-				
-				var voidFunc = new VoidFunction("EXECCMD", argv, argt);
+		var argv = [command];
+		var argt = [3];
+		
+		var voidFunc = new VoidFunction("EXECCMD", argv, argt);
 
-				self._SendVoidFunction(voidFunc);
-			});
-		}(command), 10);
+		self._SendVoidFunction(voidFunc);
 	},
 
 	GetMapRotation: function(callback)
