@@ -24,11 +24,11 @@ var Player         = require('./Player.js');
 var GeoIP          = require('./GeoIP.js');
 var Database       = require('./Database.js');
 var Printer        = require('./Printer.js');
-
+var PluginLogger   = require('./PluginLogger.js');
 
 function Wonderland()
 {
-	this._version = "1.0a";
+	this._version = "1.1a";
 	
 	this._rabbitHolePath = "";
 	this._rabbitHoleSock = null;
@@ -359,12 +359,18 @@ Wonderland.prototype = {
 			files.forEach(function(file)
 			{
 				var Plugin = require('./Plugins/' + file);
-				var pluginInstance = new Plugin(self);
+				var pluginInstance    = new Plugin();
+				pluginInstance.Alice  = self;
+				pluginInstance.Logger = new PluginLogger(pluginInstance);
 
-				console.log('[Alice] Initializing plugin: ' + pluginInstance._fname + ' v' + pluginInstance._version + ' <' + file + '>');
+				// Notify that the plugin is being initialized
+				if(pluginInstance.hasOwnProperty("_version"))
+					console.log('[Alice] Initializing plugin: ' + pluginInstance._fname + ' <' + file + '>');
+				else
+					console.log('[Alice] Initializing plugin: ' + pluginInstance._fname + ' v' + pluginInstance._version + ' <' + file + '>');
+
+				// Initialize the plugin
 				pluginInstance.OnPluginInit();
-
-				// Construct a logger instance for this plugin to utilize
 
 				// Throw the plugin on to the stack
 				self._plugins.push(pluginInstance);
