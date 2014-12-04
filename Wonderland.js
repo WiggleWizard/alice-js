@@ -32,6 +32,7 @@ function Wonderland()
 	
 	this._rabbitHolePath = "";
 	this._rabbitHoleSock = null;
+	this._plugins = [];
 
 	// Connect to the DB immediately
 	this._db = new Database();
@@ -336,10 +337,39 @@ Wonderland.prototype = {
 			Async.parallel(asyncTasks, function()
 			{
 				self._ExecBoundFunctionsOnAliceInit();
+				self._InitializePlugins();
 			});
 
 		});
 		this._SendReturnFunction(returnFunc);
+	},
+
+	/**
+	 * Initializes all plugins in the plugin directory
+	 * @return {[type]} [description]
+	 */
+	_InitializePlugins: function()
+	{
+		var self = this;
+
+		var fs = require('fs');
+		fs.readdir('Plugins', function(err, files)
+		{
+			if(err) throw err;
+			files.forEach(function(file)
+			{
+				var Plugin = require('./Plugins/' + file);
+				var pluginInstance = new Plugin(self);
+
+				console.log('[Alice] Initializing plugin: ' + pluginInstance._fname + ' v' + pluginInstance._version + ' <' + file + '>');
+				pluginInstance.OnPluginInit();
+
+				// Construct a logger instance for this plugin to utilize
+
+				// Throw the plugin on to the stack
+				self._plugins.push(pluginInstance);
+			});
+		});
 	},
 	
 	/**
