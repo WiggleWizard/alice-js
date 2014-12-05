@@ -30,8 +30,6 @@ function Player(wonderland)
 	this._sigilGroupName    = "";
 	this._sigilGroupRank    = 0;
 
-	// Additional optional data
-	this._muted       = false;
 	this._nameChanged = 0; // Amount of times the player has change his name
 }
 
@@ -231,7 +229,7 @@ Player.prototype = {
 		
 		var voidFunc = new VoidFunction("TELL", argv, argt);
 
-		this._wonderland._SendVoidFunction(voidFunc);
+		Alice._SendVoidFunction(voidFunc);
 	},
 
 	/**
@@ -491,15 +489,6 @@ Player.prototype = {
 		]
 		this._dbConn.query(sql, sqlParams, function(err, results) {});
 	},
-	
-	Mute: function()
-	{
-		this._muted = true;
-	},
-	Unmute: function()
-	{
-		this._muted = false;
-	},
 
 	GetIP: function()
 	{
@@ -529,11 +518,6 @@ Player.prototype = {
 	{
 		return this._nameChanged;
 	},
-	IsMuted: function()
-	{
-		return this._muted;
-	},
-
 
 	GetPerms: function()
 	{

@@ -1,3 +1,5 @@
 {
-	"SigilDatabase.js": 1
+	"SigilDatabase.js": 1,
+	"Commands.js":      49,
+	"MuteUnmute.js":    50
 }

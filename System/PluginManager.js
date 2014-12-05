@@ -8,7 +8,7 @@ function PluginManager()
 
 	// Load the priority file
 	var fs = require('fs');
-	this._priorityList = JSON.parse(fs.readFileSync('./Plugins/priority.json', 'utf8'));
+	this._priorityList = JSON.parse(fs.readFileSync(__dirname + '/../Plugins/priority.json', 'utf8'));
 }
 
 PluginManager.prototype = {
@@ -33,7 +33,7 @@ PluginManager.prototype = {
 
 				console.log('[Alice] Found plugin: ' + file);
 
-				var Plugin = require('./Plugins/' + file);
+				var Plugin = require('../Plugins/' + file);
 				var pluginInstance       = new Plugin();
 				pluginInstance.Logger    = new PluginLogger(pluginInstance);
 				pluginInstance._filename = file;
