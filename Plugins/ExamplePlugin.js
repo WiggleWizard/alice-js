@@ -14,7 +14,12 @@ Plugin.prototype = {
 
 	OnPlayerChat: function(player, message)
 	{
-		
+		Alice.BroadcastChat();
+	},
+
+	OnJoinRequest: function(ipAddress, qPort)
+	{
+		Alice.JoinRequestAccept(ipAddress, qPort);
 	}
 };
 

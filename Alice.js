@@ -1,194 +1,622 @@
-var Moment = require('moment');
+/**
+ * 
+ * Written by: Terence-Lee "Zinglish" Davis.
+ *
+ * This was not written to be modified.
+ * Do not modify unless you know exactly what you are doing.
+ * 
+ */
 
-var Wonderland = require('./Wonderland.js');
-var Bang       = require('./Bang.js');       // In-game command handler
-var Utils      = require('./Utils.js');      // General utilities
-var Commands   = require('./Commands.js');   // In-game commands
-var Printer    = require('./Printer.js');    // Printing patterns
+/* NodeJS Libs */
+var Net   = require('net');
+var Async = require('async');
 
-/***********************************************\
-|* GLOBALS
-\***********************************************/
-var wonderland = null;
-var bang = null;
-var databaseConn = null;
+/* Static User Libs */
+var EventParser  = require('./EventParser.js');
+var Utils        = require('./Utils.js');
 
-/***********************************************\
-|* EVENT TRIGGERS
-\***********************************************/
+/* User Objects */
+global.Player      = require('./Player.js');
 
-function OnAliceInit()
+var PluginManager   = require('./PluginManager.js');
+var VoidFunction    = require('./VoidFunction.js');
+var ReturnFunction  = require('./ReturnFunction.js');
+var GeoIP           = require('./GeoIP.js');
+var Database        = require('./Database.js');
+var Printer         = require('./Printer.js');
+
+Alice = function()
 {
-	console.log("Binding events to Alice");
+	this._version = "1.1a";
 	
-	// Wonderland binds
-	wonderland.BindFunctionToEvent(OnJoinRequest, 'joinreq');
-	wonderland.BindFunctionToEvent(OnJoin, 'join');
-	wonderland.BindFunctionToEvent(OnDisconnect, 'disconnect');
-	wonderland.BindFunctionToEvent(OnPlayerChat, 'chat');
-	wonderland.BindFunctionToEvent(OnPlayerChangeName, 'namechange');
-	wonderland.BindFunctionToEvent(OnStatusRequest, 'statusreq');
+	this._rabbitHolePath = "";
+	this._rabbitHoleSock = null;
+
+	// Connect to the DB immediately
+	this._db = new Database();
+	this._db.ConnectUsing("./database_config.json");
+	this._dbConn = this._db._dbConn; // Easier ref
+	
+	// Binds
+	this._eventBindsOnAliceInit  = new Array();
+	this._eventBindsOnChat       = new Array();
+	this._eventBindsOnNameChange = new Array();
+	this._eventBindsOnStatusReq  = new Array();
+	this._eventBindsOnJoinReq    = new Array();
+	this._eventBindsOnJoin       = new Array();
+	this._eventBindsOnDisconnect = new Array();
+	
+	// Stored return functions for callback execution upon return
+	this._stackReturnFunctions = {};
+	
+	// General declarations
+	this._initialized = false;
+	this._maxClients  = 0;
+	this._players     = new Array();
+	this._geoIP       = new GeoIP();
+
+	// Load the Plugins
+	this._pluginManager = new PluginManager();
+	this._pluginManager.LoadPlugins();
+
+	// Initialize the module
+	this._GetFreeRabbithole();
 }
 
-function OnPlayerChat(player, message)
-{
-	cmdResult = bang.Execute(player, message);
+Alice.prototype = {
 
-	// If it was not a command then produce normal chat
-	if(cmdResult === 0)
+/***********************************************\
+|* PUBLIC
+\***********************************************/
+	
+	/* ============ GENERAL USE
+	\* ========================================== */
+
+	/**
+	 * Finds only a handful of players by partial name. This is a case insensitive search.
+	 * 
+	 * @param  {string} needle - Partial or full name.
+	 * @return {array}         - Array of slot/index IDs of each player matched. Null if
+	 *                           no players found.
+	 */
+	FindPlayersByPartName: function(needle)
 	{
-		if(!player.IsMuted())
+		// Names cannot be longer than 14 characters so why waste the time trying to
+		// look for one? ;)
+		if(needle.length > 14)
+			return null;
+
+		var found = [];
+
+		needle = needle.toLowerCase();
+
+		var i, len, player, playerName;
+		for(i = 0, len = this.GetMaxClients() ; i < len ; i++)
 		{
-			var name = Utils.StripColor(player.GetName());
-			console.log('[' + player.GetSlotID() + '] ' + player.GetName() + ': ' + message);
-			wonderland.BroadcastChat(name + ": ^7" + message);
-		}
-		else
-		{
-			player.Tell('^1You are muted');
-		}
-	}
-	// No such command
-	else if(cmdResult === 2)
-	{
-		player.Tell("^1No such command");
-	}
-	// No permissions for command
-	else if(cmdResult === 4)
-	{
-		player.Tell("^1You do not have permissions for that");
-	}
+			player = this._players[i];
 
-}
-
-function OnPlayerChangeName(player, newName)
-{
-	var acceptNewName = false;
-
-	// If the player is signed into Sigil then change his name, otherwise limit name
-	// change to 3 times a session. (Session lasts as long as the player is on the server).
-	if(player.IsSignedIntoSigil())
-		acceptNewName = true;
-	else
-	{
-		if(player.GetTimesChangedName() >= 3)
-			player.Tell("^1You may only change your name 3 times during your session." +
-						"You must disconnect then reconnect if you wish to change your name again.");
-		else
-			acceptNewName = true;
-	}
-		
-	if(acceptNewName === true)
-		player.SetName(newName);
-}
-
-function OnJoinRequest(ipAddress, qPort, geoData)
-{
-	// Search the database for any bans matching the IP
-	var sql  = 'SELECT                       \
-					id,                      \
-					player_name,             \
-					player_ip,               \
-					unban_datetime,          \
-					type,                    \
-					reason                   \
-				FROM                         \
-					bans                     \
-				WHERE                        \
-					player_ip=? AND banned=1 \
-				ORDER BY id DESC';
-	databaseConn.query(sql, [ipAddress], function(err, result)
-	{
-		var resultSize = result.length;
-
-		// If there is no result then let them join of course, otherwise
-		// deny the IP and tell them why they are banned.
-		if(resultSize <= 0)
-			wonderland.JoinRequestAccept(ipAddress, qPort);
-		else
-		{
-			if(result[0]['type'] === 1)
+			if(player.IsConnected())
 			{
-				var message = Printer.GenerateNotice(
-						'You are banned',                               // Title 
-						Utils.color.red,                                // Title Color
-						"^7Your ban ID is ^1" + result[0].id + "^7\n" + // Content
-						"You are banned for: \n^1" + result[0].reason,
-						Utils.color.red                                 // Box Color
-					);
-				wonderland.JoinRequestDeny(ipAddress, qPort, message);
+				playerName = player.GetName().toLowerCase();
+
+				if(playerName.search(needle) >= 0)
+					found.push(player);
 			}
+		}
+
+		// GC
+		i = null;
+		len = null;
+		player = null;
+		playerName = null;
+
+		return found.length > 0 ? found : null;
+	},
+
+	/**
+	 * Finds a player on the server. Takes both player ID and partial name
+	 * notational strings.
+	 * 
+	 * @param  {[type]} needle [description]
+	 * @return {Player}        Will return NULL if no players are found.
+	 */
+	FindPlayers: function(needle)
+	{
+		var playersFound = [];
+		var playerID;
+
+		if((playerID = Utils.ToInt(needle)) != null)
+		{
+			player = this._players[playerID];
+
+			if(player.IsConnected())
+				playersFound[0] = player;
 			else
+				playersFound = null;
+		}
+		else
+			playersFound = this.FindPlayersByPartName(needle);
+
+		return playersFound;
+	},
+	
+	/**
+	 * Finds a single player using needle as search term, takes ID and player
+	 * partial name. If 'player' is not null then the function will autoprint warnings
+	 * to the player ('player').
+	 * 
+	 * @param  {String} needle - Search term.
+	 * @param  {Player} player - Print warnings/errors for player.
+	 * @return {Player} - Not null if 1 player was found
+	 */
+	FindPlayer: function(needle, player)
+	{
+		var playerArray = this.FindPlayers(needle);
+		
+		if(playerArray == null)
+		{
+			player.Tell("^1No players found in the search, try using different search terms");
+			return null;
+		}
+		
+		if(playerArray.length > 1)
+		{
+			player.Tell("^1Multiple players found with that name:");
+			Printer.ListPlayersFor(player, playerArray);
+			return null;
+		}
+		
+		// Only 1 player was found
+		return playerArray[0];
+	},
+	
+	/* ============ VOID FUNCTIONS
+	\* ========================================== */
+	
+	/**
+	 * Broadcasts a chat message across the entire server.
+	 * 
+	 * @param {[type]} message [description]
+	 */
+	BroadcastChat: function(message)
+	{
+		var argv = [message];
+		var argt = [3];
+		
+		var voidFunc = new VoidFunction("BCASTCHAT", argv, argt);
+
+		this._SendVoidFunction(voidFunc);
+	},
+
+	JoinRequestDeny: function(ipAddress, qPort, message)
+	{
+		var argv = [ipAddress, qPort, message];
+		var argt = [3, 1, 3];
+		
+		var voidFunc = new VoidFunction("LIMBODENY", argv, argt);
+
+		this._SendVoidFunction(voidFunc);
+	},
+
+	JoinRequestAccept: function(ipAddress, qPort)
+	{
+		var argv = [ipAddress, qPort];
+		var argt = [3, 1];
+		
+		var voidFunc = new VoidFunction("LIMBOACCEPT", argv, argt);
+
+		this._SendVoidFunction(voidFunc);
+	},
+	
+	/* ============ RETURN FUNCTIONS
+	\* ========================================== */
+	
+	GetMaxClients: function(callback)
+	{
+		return this._maxClients;
+	},
+
+	/**
+	 * Executes a CoD4 command.
+	 * 
+	 * @param {[type]} command [description]
+	 */
+	ExecuteCommand: function(command)
+	{
+		var self = this;
+
+		var argv = [command];
+		var argt = [3];
+		
+		var voidFunc = new VoidFunction("EXECCMD", argv, argt);
+
+		self._SendVoidFunction(voidFunc);
+	},
+
+	GetMapRotation: function(callback)
+	{
+		var returnFunc = new ReturnFunction(1, "GETMAPROTATION", [], [], function(mapRotation)
+		{
+			callback(mapRotation);
+		});
+		this._SendReturnFunction(returnFunc);
+	},
+
+	GetMapRotationCurrent: function(callback)
+	{
+		var returnFunc = new ReturnFunction(1, "GETMAPROTATIONCURRENT", [], [], function(mapRotation)
+		{
+			callback(mapRotation);
+		});
+		this._SendReturnFunction(returnFunc);
+	},
+
+
+/***********************************************\
+|* PRIVATE
+\***********************************************/
+
+	/**
+	 * This is only ever called AFTER the CoD4 server is initialized correctly.
+	 *
+	 * Function probably needs some work.
+	 */
+	_Initialize: function()
+	{
+		console.log("Alice initializing");
+
+		var self = this;
+		
+		// Create an array of empty players
+		for(var i=0; i < this._maxClients; i++)
+		{
+			this._players[i] = new Player(this);
+		}
+		
+		// Construct all the currently connected players (This is mostly important
+		// if Alice was started after server has been initialized).
+		var returnFunc = new ReturnFunction(2, "PLAYERDATA", [], [], function(playerData)
+		{
+			var playersBuilt = 0;
+
+			// Parse the player data
+			var lines = playerData.split('\n');
+			var linec = lines.length;
+
+			// Create async task list to initialize players
+			var asyncTasks = [];
+			lines.forEach(function(line)
 			{
-				if(Moment(result[0]['unban_datetime']).isAfter(Moment()))
+				asyncTasks.push(function(callback)
 				{
-					var message = Printer.GenerateNotice(
-						'You are temporarily banned for ' + Moment(result[0]['unban_datetime']).fromNow(true),
-						Utils.color.red,
-						'^7Your ban ID is ^1' + result[0].id + '^7\n' +
-						'You are banned for: \n^1' + result[0].reason,
-						Utils.color.red
-					);
-					wonderland.JoinRequestDeny(ipAddress, qPort, message);
-				}
-				else
+					if(line === "")
+					{
+						callback();
+						return;
+					}
+
+					var playerInfo = line.split('\\\\');
+					var slotID = parseInt(playerInfo[0]);
+
+					self._geoIP.Locate(playerInfo[1], function(geoData)
+					{
+						self._players[slotID].Initialize(slotID, playerInfo[1], playerInfo[2], playerInfo[3], geoData, function() {});
+
+						callback();
+					});
+				});
+			});
+
+			// Once all players are initialized correctly, then call any bound functions
+			Async.parallel(asyncTasks, function()
+			{
+				self._ExecBoundFunctionsOnAliceInit();
+			});
+
+		});
+		this._SendReturnFunction(returnFunc);
+	},
+	
+	/**
+	 * Called when the Rabbit Hole connection has been properly made. If the server
+	 * hasn't been initialized correctly then it will wait for that event to fire instead.
+	 */
+	_RabbitHoleInit: function()
+	{
+		var self = this;
+
+		// Get the max clients from the server when Alice starts up,
+		// if there's no max clients then Alice will wait for the Common Init.
+		var returnFunc = new ReturnFunction(1, "GETMAXCLIENTS", [], [], function(maxClients)
+		{
+			if(parseInt(maxClients) != 0)
+			{
+				self._maxClients = parseInt(maxClients);
+				console.log("Max clients: " + self._maxClients);
+				
+				self._initialized = true;
+				
+				self._Initialize();
+			}
+		});
+		this._SendReturnFunction(returnFunc);
+	},
+	
+	/**
+	 * Called when the actual CoD4 server is properly initialized.
+	 */
+	_ServerInit: function()
+	{
+		var self = this;
+
+		// Get the max clients from the server
+		var returnFunc = new ReturnFunction(1, "GETMAXCLIENTS", [], [], function(maxClients)
+		{
+			if(self._initialized === false)
+			{
+				self._maxClients = parseInt(maxClients);
+				console.log("Max clients: " + self._maxClients);
+				
+				self._initialized = true;
+				
+				self._Initialize();
+			}
+		});
+		this._SendReturnFunction(returnFunc);
+	},
+	
+	/* ============ SOCKET BUILDERS
+	\* ========================================== */
+
+	/**
+	 * Contacts the IPC Delegator on a Unix Domain Socket that Wonderland
+	 * creates and gets a rabbit hole so the addon can communicate with
+	 * the Wonderland instance. It then ends the connection because it will
+	 * connect to the Rabbit hole and communicate there.
+	 */
+	_GetFreeRabbithole: function()
+	{
+		var self = this;
+
+		// Attempt to connect to Wonderland and request a rabbit hole
+		var ipcDelegatorSock = Net.connect({path: "/tmp/wonderland-alicetest"}, function()
+		{
+			console.log("Connection made to Wonderland, requesting a rabbit hole");
+
+			// Prepare the packet variables
+			var command = "RABBITHOLE";
+			var packet  = new Buffer(8 + command.length);
+
+			packet.writeUInt32BE(1, 0);               // Version
+			packet.writeUInt32BE(command.length, 4);  // Payload length
+			packet.write(command, 8, command.length); // Payload
+
+			// Send the rabbit hole request
+			ipcDelegatorSock.write(packet);
+		});
+
+		ipcDelegatorSock.on('data', function(data)
+		{
+			// We have to parse the payload, because there is an int
+			// at the beginning telling us how long the payload is.
+			var buf = new Buffer(data);
+			self._rabbitHolePath = buf.toString('utf8', 4, data.length);
+
+			console.log("Rabbit hole path received: " + self._rabbitHolePath);
+
+			// Close comms with IPC Delegator			
+			ipcDelegatorSock.end();
+
+			// Try connect to the newly requested rabbit hole
+			self._ConnectToRabbitHole();
+		});
+	},
+
+	_ConnectToRabbitHole: function()
+	{
+		var self = this;
+
+		// Attempt connection to the rabbit hole
+		this._rabbitHoleSock = Net.connect({path: this._rabbitHolePath}, function()
+		{
+			console.log("Rabbit hole connection made to " + self._rabbitHolePath);
+			
+			self._RabbitHoleInit();
+		});
+
+		// When the Rabbit hole receives data, parse the data and attempt to
+		// execute anything that's parsed.
+		this._rabbitHoleSock.on('data', function(data)
+		{
+			var buffer = new Buffer(data);
+			self._AnalyzePacket(buffer);
+		});
+	},
+
+
+
+	/* ============ INTERNAL CALLBACKS
+	\* ========================================== */
+
+	/**
+	 * Called when the actual server has been initialized correctly. Never called
+	 * if the server's already initialized
+	 */
+	_OnJoinRequest: function(ipAddress, qPort, callback)
+	{
+		// Geolocate the player
+		this._geoIP.Locate(ipAddress, function(geoData)
+		{
+			// Once done, execute the callback with the geo locational data
+			callback(geoData);
+		});
+	},
+	_OnJoin: function(slotID, ipAddress, guid, name, callback)
+	{
+		// Initialize the player on this slot correctly, this involves getting permissions
+		// from database too if applicable.
+		var geoData = this._geoIP.LocateFromCache(ipAddress, true); // Rely on cache
+		this._players[slotID].Initialize(slotID, ipAddress, guid, name, geoData, callback);
+	},
+	_OnDisconnect: function(slotID)
+	{
+		// De-initialize player properties
+		this._players[slotID]._connected = false;
+	},
+	
+	
+	/* ============ IPC
+	\* ========================================== */
+	
+	/**
+	 * Sends a void function call to Wonderland.
+	 * 
+	 * @param VoidFunction func Uncompiled VoidFunction object.
+	 */
+	_SendVoidFunction: function(func)
+	{
+		func.Compile();
+		this._rabbitHoleSock.write(func.GetBuffer());
+	},
+	
+	/**
+	 * Compiles, sends and adds to the stack.
+	 * 
+	 * @param {[type]}   func     [description]
+	 * @param {Function} callback [description]
+	 */
+	_SendReturnFunction: function(func, callback)
+	{
+		func.Compile();
+		this._rabbitHoleSock.write(func.GetPacket());
+		this._stackReturnFunctions[func.GetPacketID()] = func;
+	},
+	
+	/**
+	* Determines what kind of packet is received and passes
+	* the output on to the correct executor.
+	* 
+	* @param {Buffer} buffer - Full packet
+	*/
+	_AnalyzePacket: function(buffer)
+	{
+		// If it is an event packet
+		if(buffer.readUInt8(0) === "E".charCodeAt(0))
+		{
+			// Parse the packet into an Event object
+			var e = EventParser.Parse(buffer);
+			console.log('[DBG] Recieved Event: ' + e.GetName());
+			
+			// Determine how to execute the event within Alice
+			if(e.GetName() === "INIT")
+			{
+				this._ServerInit();
+			}
+			else if(e.GetName() === "CHAT")
+				this._ExecPluginOnChat(this._players[parseInt(e.GetArg(0))], e.GetArg(2));
+			else if(e.GetName() === "CHANGENAME")
+				this._ExecBoundFunctionsOnNameChange(this._players[parseInt(e.GetArg(0))], e.GetArg(1));
+			else if(e.GetName() === "STATUSREQ")
+				this._ExecBoundFunctionsOnStatusReq(e.GetArg(0), e.GetArg(1));
+			else if(e.GetName() === "JOINREQ")
+			{
+				var self = this;
+
+				// Execute internal callback before executing the user defined ones
+				this._OnJoinRequest(e.GetArg(0), e.GetArg(1), function(geoData)
 				{
-					wonderland.JoinRequestAccept(ipAddress, qPort);
-				}
+					self._ExecPluginOnJoinReq(e.GetArg(0), e.GetArg(1), geoData);
+				});
+			}
+			else if(e.GetName() === "JOIN")
+			{
+				var self = this;
+
+				this._OnJoin(parseInt(e.GetArg(0)), e.GetArg(1), e.GetArg(2), e.GetArg(3), function()
+				{
+					self._ExecBoundFunctionsOnJoin(self._players[parseInt(e.GetArg(0))]);
+				});
+			}
+			else if(e.GetName() === "DISCONNECT")
+			{
+				this._ExecBoundFunctionsOnDisconnect(this._players[parseInt(e.GetArg(0))]);
+
+				// Execute internal event, mostly used to clean up player objects
+				this._OnDisconnect(parseInt(e.GetArg(0)));
 			}
 		}
-	});
-}
-
-function OnJoin(player)
-{
-	console.log(player.GetName() + " has joined the server on slot " + player.GetSlotID() + " with IP " + player.GetIP());
-}
-
-function OnDisconnect(player)
-{
-	console.log(player.GetName() + " has left");
-}
-
-function OnStatusRequest()
-{
-	console.log("Status requested");
-}
-
-function Main()
-{
-	wonderland   = new Wonderland();
-	bang         = new Bang(wonderland);
-	databaseConn = wonderland._db._dbConn;
+		else if(buffer.readUInt8(0) === "R".charCodeAt(0))
+		{
+			// Get the packet's ID so we can determine which callback to execute
+			var packetID = buffer.readUInt32BE(5);
+			
+			// Parse and execute the callback that's associated with the packet ID
+			returnFunction = this._stackReturnFunctions[packetID];
+			returnFunction.Parse(buffer);
+			returnFunction.ExecuteCallback();
+		}
+	},
 	
-	wonderland.BindFunctionToEvent(OnAliceInit, 'aliceinit');
 	
-	// Admin commands
-	bang.RegisterCommand("perm",      null, 1, Commands.Perm);
-	bang.RegisterCommand("kick",      "kick", 2, Commands.Kick);
-	bang.RegisterCommand("k",         "kick", 2, Commands.Kick);         // Alias for Kick
-	bang.RegisterCommand("ban",       "ban", 2, Commands.Ban);
-	bang.RegisterCommand("tban",      "tempban", 3, Commands.TempBan);
-	bang.RegisterCommand("b",         "ban", 2, Commands.Ban);           // Alias for Ban
-	bang.RegisterCommand("warn",      "warn", 2, Commands.Warn);
-	bang.RegisterCommand("w",         "warn", 2, Commands.Warn);         // Alias for Warn
-	bang.RegisterCommand("geo",       "geo", 1, Commands.Geo);
-	bang.RegisterCommand("name",      "rename", 1, Commands.Name);
-	bang.RegisterCommand("plist",     "plist", 1, Commands.PlayerList);
-	bang.RegisterCommand("p",         "plist", 1, Commands.PlayerList);  // Alias for PList
-	bang.RegisterCommand("mute",      "mute", 1, Commands.MutePlayer);
-	bang.RegisterCommand("unmute",    "mute", 1, Commands.UnmutePlayer);
-	bang.RegisterCommand("map",       "map", 2, Commands.Map);
-	bang.RegisterCommand("maps",      "maps", 0, Commands.Maps);
-	bang.RegisterCommand("gametypes", "gametypes", 0, Commands.Gametypes);
-
-	// Fun commands
-	bang.RegisterCommand("ping", null, 0, Commands.Ping);
-	bang.RegisterCommand("pizza", null, 1, Commands.Pizza);
-
-	// All player commands
-	bang.RegisterCommand("nm", null, 0, Commands.NextMap);
-	bang.RegisterCommand("version", null, 0, Commands.Version);
+	/* ============ BOUND FUNC EXECUTORS
+	\* ========================================== */
+	
+	_ExecBoundFunctionsOnAliceInit: function()
+	{
+		var c = this._eventBindsOnAliceInit.length;
+		for(var i = 0; i < c; i++)
+		{
+			this._eventBindsOnAliceInit[i]();
+		}
+	},
+	_ExecPluginOnJoinReq: function(ipAddress, geoData)
+	{
+		var c = this._pluginManager._plugins.length;
+		for(var i = 0; i < c; i++)
+		{
+			this._pluginManager._plugins[i].OnJoinRequest(ipAddress, geoData);
+		}
+	},
+	_ExecBoundFunctionsOnJoin: function(player)
+	{
+		var c = this._eventBindsOnJoin.length;
+		for(var i = 0; i < c; i++)
+		{
+			this._eventBindsOnJoin[i](player);
+		}
+	},
+	_ExecBoundFunctionsOnDisconnect: function(player)
+	{
+		var c = this._eventBindsOnDisconnect.length;
+		for(var i = 0; i < c; i++)
+		{
+			this._eventBindsOnDisconnect[i](player);
+		}
+	},
+	_ExecPluginOnChat: function(player, message)
+	{
+		var c = this._pluginManager._plugins.length;
+		for(var i = 0; i < c; i++)
+		{
+			this._pluginManager._plugins[i].OnPlayerChat(player, message);
+		}
+	},
+	_ExecBoundFunctionsOnNameChange: function(player, newName)
+	{
+		var c = this._eventBindsOnNameChange.length;
+		for(var i = 0; i < c; i++)
+		{
+			this._eventBindsOnNameChange[i](player, newName);
+		}
+	},
+	_ExecBoundFunctionsOnStatusReq: function(playerID, newName)
+	{
+		var c = this._eventBindsOnStatusReq.length;
+		for(var i = 0; i < c; i++)
+		{
+			this._eventBindsOnStatusReq[i]();
+		}
+	}
 }
 
-Main();
+global.Alice = new Alice();

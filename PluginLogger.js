@@ -6,17 +6,17 @@ var PluginLogger = function(pluginInstance)
 PluginLogger.prototype = {
 	LogInfo: function(message)
 	{
-		console.log('[' + this._pluginName + '][Info] ' + message);
+		console.log('[Plugin][' + this._pluginName + '][Info] ' + message);
 	},
 
 	LogWarn: function(message)
 	{
-		console.log('[' + this._pluginName + '][Warn] ' + message);
+		console.log('[Plugin][' + this._pluginName + '][Warn] ' + message);
 	},
 
 	LogError: function(message)
 	{
-		console.log('[' + this._pluginName + '][Error] ' + message);
+		console.log('[Plugin][' + this._pluginName + '][Error] ' + message);
 	}
 }
 
