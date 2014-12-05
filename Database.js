@@ -31,7 +31,7 @@ Database.prototype = {
 
 			if(err.code === 'PROTOCOL_CONNECTION_LOST')
 			{
-				ConnectUsing(jsonPath);
+				this.ConnectUsing(jsonPath);
 			}
 			else
 			{
