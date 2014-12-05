@@ -595,10 +595,21 @@ Alice.prototype = {
 	},
 	_ExecPluginOnChat: function(player, message)
 	{
+		var in = message;
+
 		var c = this._pluginManager._plugins.length;
 		for(var i = 0; i < c; i++)
 		{
-			this._pluginManager._plugins[i].OnPlayerChat(player, message);
+			// If the plugin returns an empty string or false, then do not propagate
+			// to the next plugin.
+			if(message === false || message === "")
+				break;
+			
+			var result = this._pluginManager._plugins[i].OnPlayerChat(player, in);
+
+			// in is only modified if the plugin returns a string when executed
+			if(result !== undefined)
+				in = result;
 		}
 	},
 	_ExecBoundFunctionsOnNameChange: function(player, newName)

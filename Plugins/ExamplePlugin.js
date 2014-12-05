@@ -7,14 +7,20 @@ var Plugin = function()
 }
 
 Plugin.prototype = {
-	OnPluginInit: function()
-	{
-		this.Logger.LogInfo("Test info log");
-	},
+	OnPluginInit: function() {},
 
 	OnPlayerChat: function(player, message)
 	{
-		Alice.BroadcastChat();
+		this.Logger.LogInfo(player.GetName() + ': ' + message);
+		Alice.BroadcastChat(player.GetName() + ': ^7' + message);
+
+		// We politely return the message here, if we do not return anything
+		// or return 'undefined' then the next plugin will use this message
+		// un-altered.
+		// 
+		// Returning a message here, altered or un-altered, means that the
+		// next priority plugin will use this message.
+		return message;
 	},
 
 	OnJoinRequest: function(ipAddress, qPort)
