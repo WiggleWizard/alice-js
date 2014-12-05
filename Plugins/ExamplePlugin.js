@@ -5,6 +5,7 @@ var Plugin = function()
 	this._name    = "ExamplePlugin";                    // Machine name
 	this._version = "1.0";                              // Version
 	this._enabled = false;
+	this._deps    = "SigilDatabase";
 }
 
 Plugin.prototype = {

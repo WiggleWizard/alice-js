@@ -86,7 +86,12 @@ PluginManager.prototype = {
 			// Check the deps of the plugin
 			if(plugin._deps !== undefined)
 			{
-				var depsArr = plugin._deps.split(',');
+				var hasDepsInitialized = this.HasDepsInitialized(plugin._deps.split(','));
+
+				if(!hasDepsInitialized)
+				{
+					console.log('[Alice] Could not initialize plugin ' + plugin._fname + ' because one of the dependencies (' + plugin._deps + ') have not been initialized');
+				}
 			}
 
 			// Notify that the plugin is being initialized
@@ -107,24 +112,24 @@ PluginManager.prototype = {
 	 * Checks if the dependencies have been initialized.
 	 * @param {Array} deps Dependencies
 	 */
-	HasDepsLoaded: function(deps)
+	HasDepsInitialized: function(deps)
 	{
 		var depsLoaded = 0;
 
 		var c = this._plugins.length;
-		this._plugins.forEach(plugin, i, array)
+		this._plugins.forEach(function(plugin, i, array)
 		{
-			deps.forEach(dep, j, array)
+			deps.forEach(function(dep, j, array)
 			{
 				if(dep === plugin._name)
 				{
 					if(plugin._initialized === true)
 						depsLoaded++;
-					
+
 					return false;
 				}
-			}
-		}
+			});
+		});
 
 		// If all the deps that were required have been loaded
 		if(depsLoaded === deps.length)

@@ -566,7 +566,8 @@ Alice.prototype = {
 		var c = this._pluginManager._plugins.length;
 		for(var i = 0; i < c; i++)
 		{
-			this._pluginManager._plugins[i].OnAliceInit();
+			if(this._pluginManager._plugins[i].OnAliceInit !== undefined)
+				this._pluginManager._plugins[i].OnAliceInit();
 		}
 	},
 	_ExecPluginOnJoinReq: function(ipAddress, geoData)
@@ -574,7 +575,8 @@ Alice.prototype = {
 		var c = this._pluginManager._plugins.length;
 		for(var i = 0; i < c; i++)
 		{
-			this._pluginManager._plugins[i].OnJoinRequest(ipAddress, geoData);
+			if(this._pluginManager._plugins[i].OnJoinRequest !== undefined)
+				this._pluginManager._plugins[i].OnJoinRequest(ipAddress, geoData);
 		}
 	},
 	_ExecBoundFunctionsOnJoin: function(player)
@@ -605,11 +607,14 @@ Alice.prototype = {
 			if(message === false || message === "")
 				break;
 			
-			var result = this._pluginManager._plugins[i].OnPlayerChat(player, msgIn);
+			if(this._pluginManager._plugins[i].OnPlayerChat !== undefined)
+			{
+				var result = this._pluginManager._plugins[i].OnPlayerChat(player, msgIn);
 
-			// msgIn is only modified if the plugin returns a string when executed
-			if(result !== undefined)
-				msgIn = result;
+				// msgIn is only modified if the plugin returns a string when executed
+				if(result !== undefined)
+					msgIn = result;
+			}
 		}
 	},
 	_ExecBoundFunctionsOnNameChange: function(player, newName)
