@@ -45,6 +45,9 @@ PluginManager.prototype = {
 				if(pluginInstance._priority === undefined)
 					pluginInstance._priority = self.DEFAULT_PRIORITY;
 
+				// Mark the plugin as loaded
+				pluginInstance._loaded = true;
+
 				// Throw the plugin on to the stack
 				self._plugins.push(pluginInstance);
 			});
@@ -78,15 +81,56 @@ PluginManager.prototype = {
 	{
 		for(var i=0; i < this._plugins.length; i++)
 		{
+			var plugin = this._plugins[i];
+
+			// Check the deps of the plugin
+			if(plugin._deps !== undefined)
+			{
+				var depsArr = plugin._deps.split(',');
+			}
+
 			// Notify that the plugin is being initialized
 			if(this._plugins[i].hasOwnProperty("_version"))
-				console.log('[Alice] Initializing plugin: ' + this._plugins[i]._fname + ' <' + this._plugins[i]._filename + '>');
+				console.log('[Alice] Initializing plugin: ' + plugin._fname + ' <' + plugin._filename + '>');
 			else
-				console.log('[Alice] Initializing plugin: ' + this._plugins[i]._fname + ' v' + this._plugins[i]._version + ' <' + file + '>');
+				console.log('[Alice] Initializing plugin: ' + plugin._fname + ' v' + plugin._version + ' <' + file + '>');
 
 			// Initialize the plugin
-			this._plugins[i].OnPluginInit();
+			plugin.OnPluginInit();
+
+			// Mark the plugin as initialized
+			plugin._initialized = true;
 		}
+	},
+
+	/**
+	 * Checks if the dependencies have been initialized.
+	 * @param {Array} deps Dependencies
+	 */
+	HasDepsLoaded: function(deps)
+	{
+		var depsLoaded = 0;
+
+		var c = this._plugins.length;
+		this._plugins.forEach(plugin, i, array)
+		{
+			deps.forEach(dep, j, array)
+			{
+				if(dep === plugin._name)
+				{
+					if(plugin._initialized === true)
+						depsLoaded++;
+					
+					return false;
+				}
+			}
+		}
+
+		// If all the deps that were required have been loaded
+		if(depsLoaded === deps.length)
+			return true;
+
+		return false;
 	}
 }
 

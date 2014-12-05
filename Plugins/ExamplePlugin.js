@@ -1,8 +1,9 @@
 var Plugin = function()
 {
-	this._fname   = "Example Plugin" // Friendly name
-	this._name    = "examplePlugin"; // Machine name
-	this._version = "1.0";           // Version
+	this._fname   = "Example Plugin"                    // Friendly name
+	this._desc    = "An example plugin for developers"; // Not used anywhere, mostly just for informational purpose
+	this._name    = "ExamplePlugin";                    // Machine name
+	this._version = "1.0";                              // Version
 	this._enabled = false;
 }
 

@@ -563,10 +563,10 @@ Alice.prototype = {
 	
 	_ExecBoundFunctionsOnAliceInit: function()
 	{
-		var c = this._eventBindsOnAliceInit.length;
+		var c = this._pluginManager._plugins.length;
 		for(var i = 0; i < c; i++)
 		{
-			this._eventBindsOnAliceInit[i]();
+			this._pluginManager._plugins[i].OnAliceInit();
 		}
 	},
 	_ExecPluginOnJoinReq: function(ipAddress, geoData)
@@ -595,7 +595,7 @@ Alice.prototype = {
 	},
 	_ExecPluginOnChat: function(player, message)
 	{
-		var in = message;
+		var msgIn = message;
 
 		var c = this._pluginManager._plugins.length;
 		for(var i = 0; i < c; i++)
@@ -605,11 +605,11 @@ Alice.prototype = {
 			if(message === false || message === "")
 				break;
 			
-			var result = this._pluginManager._plugins[i].OnPlayerChat(player, in);
+			var result = this._pluginManager._plugins[i].OnPlayerChat(player, msgIn);
 
-			// in is only modified if the plugin returns a string when executed
+			// msgIn is only modified if the plugin returns a string when executed
 			if(result !== undefined)
-				in = result;
+				msgIn = result;
 		}
 	},
 	_ExecBoundFunctionsOnNameChange: function(player, newName)
