@@ -602,14 +602,17 @@ Alice.prototype = {
 		var c = this._pluginManager._plugins.length;
 		for(var i = 0; i < c; i++)
 		{
+			var plugin = this._pluginManager._plugins[i];
+
 			// If the plugin returns an empty string or false, then do not propagate
 			// to the next plugin.
-			if(message === false || message === "")
+			if(msgIn === false || msgIn === "")
 				break;
 			
-			if(this._pluginManager._plugins[i].OnPlayerChat !== undefined)
+			// Ensure that the plugin has this trigger function before attempting to call it
+			if(plugin.OnPlayerChat !== undefined)
 			{
-				var result = this._pluginManager._plugins[i].OnPlayerChat(player, msgIn);
+				var result = plugin.OnPlayerChat(player, msgIn);
 
 				// msgIn is only modified if the plugin returns a string when executed
 				if(result !== undefined)

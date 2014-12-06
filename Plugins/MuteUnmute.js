@@ -10,7 +10,7 @@ var Plugin = function()
 Plugin.prototype = {
 	OnPluginInit: function()
 	{
-		Player._muted = false;
+		Player.prototype._muted = false;
 
 		Player.prototype.Mute = function()
 		{

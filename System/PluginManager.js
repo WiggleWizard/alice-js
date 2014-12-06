@@ -22,7 +22,7 @@ PluginManager.prototype = {
 		var self = this;
 
 		var fs = require('fs');
-		fs.readdir('Plugins', function(err, files)
+		fs.readdir(__dirname + '/../Plugins', function(err, files)
 		{
 			if(err) throw err;
 			files.forEach(function(file)
@@ -31,7 +31,7 @@ PluginManager.prototype = {
 				if(file.slice(-3) !== '.js')
 					return;
 
-				console.log('[Alice] Found plugin: ' + file);
+				console.log('[Alice][PluginManager] Loading: ' + file);
 
 				var Plugin = require('../Plugins/' + file);
 				var pluginInstance       = new Plugin();
@@ -90,15 +90,15 @@ PluginManager.prototype = {
 
 				if(!hasDepsInitialized)
 				{
-					console.log('[Alice] Could not initialize plugin ' + plugin._fname + ' because one of the dependencies (' + plugin._deps + ') have not been initialized');
+					console.log('[Alice][PluginManager] Could not initialize plugin ' + plugin._fname + ' because one of the dependencies (' + plugin._deps + ') have not been initialized');
 				}
 			}
 
 			// Notify that the plugin is being initialized
 			if(this._plugins[i].hasOwnProperty("_version"))
-				console.log('[Alice] Initializing plugin: ' + plugin._fname + ' <' + plugin._filename + '>');
+				console.log('[Alice][PluginManager] Initializing: ' + plugin._fname + ' <' + plugin._filename + '>');
 			else
-				console.log('[Alice] Initializing plugin: ' + plugin._fname + ' v' + plugin._version + ' <' + file + '>');
+				console.log('[Alice][PluginManager] Initializing: ' + plugin._fname + ' v' + plugin._version + ' <' + file + '>');
 
 			// Initialize the plugin
 			plugin.OnPluginInit();

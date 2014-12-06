@@ -67,7 +67,6 @@ Player.prototype = {
 		this._sigilGroupRank    = 0;
 
 		// Additional optional data
-		this._muted       = false;
 		this._nameChanged = 0; // Amount of times the player has change his name
 
 		// Sets object properties
