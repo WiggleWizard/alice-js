@@ -1,5 +1,6 @@
 {
 	"SigilDatabase.js": 1,
+	"SigilPerms.js":    2,
 	"Commands.js":      49,
 	"MuteUnmute.js":    50
 }
