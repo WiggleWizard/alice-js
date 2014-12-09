@@ -581,10 +581,11 @@ Alice.prototype = {
 	},
 	_ExecBoundFunctionsOnJoin: function(player)
 	{
-		var c = this._eventBindsOnJoin.length;
+		var c = this._pluginManager._plugins.length;
 		for(var i = 0; i < c; i++)
 		{
-			this._eventBindsOnJoin[i](player);
+			if(this._pluginManager._plugins[i].OnJoin !== undefined)
+				this._pluginManager._plugins[i].OnJoin(player);
 		}
 	},
 	_ExecBoundFunctionsOnDisconnect: function(player)
