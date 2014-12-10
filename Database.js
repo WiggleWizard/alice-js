@@ -14,6 +14,8 @@ Database.prototype = {
 	 */
 	ConnectUsing: function(jsonPath)
 	{
+		var self = this;
+		
 		var details = require(jsonPath);
 
 		this._dbConn = mysql.createConnection({
@@ -31,7 +33,7 @@ Database.prototype = {
 
 			if(err.code === 'PROTOCOL_CONNECTION_LOST')
 			{
-				this.ConnectUsing(jsonPath);
+				self.ConnectUsing(jsonPath);
 			}
 			else
 			{
